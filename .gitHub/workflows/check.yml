@@ -1,0 +1,29 @@
+name: URL Checker
+
+on:
+  schedule:
+    # GitHub Actions schedule cannot reliably run every few seconds.
+    # This asks GitHub to run once every minute.
+    - cron: "* * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check-url:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check repository
+        uses: actions/checkout@v4
+
+      - name: Check website
+        env:
+          URL: https://forum.arsacia.ir/profile/30928-dea/
+        run: |
+          echo "Checking: $URL"
+          curl -L -sS -o /dev/null \
+            --max-time 30 \
+            -w "HTTP=%{http_code} TIME=%{time_total}s\n" \
+            "$URL"
