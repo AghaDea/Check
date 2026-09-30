@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html,body{margin:0;background:#000}
+</style>
+<script>
+location.replace("/app");
+</script>
+</head>
+<body></body>
+</html>
