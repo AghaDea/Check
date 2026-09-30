@@ -1,95 +1,265 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تبدیل فرمت فیلم</title>
-    <style>
-        body {
-            font-family: Tahoma, Arial, sans-serif;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .box {
-            background: white;
-            padding: 30px 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-width: 420px;
-            width: 100%;
-        }
-        h2 {
-            text-align: center;
-            margin-top: 0;
-            color: #333;
-        }
-        label {
-            display: block;
-            margin: 15px 0 6px;
-            font-weight: bold;
-            color: #555;
-        }
-        input[type="file"],
-        select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 15px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            margin-top: 25px;
-            padding: 12px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #45a049;
-        }
-        .error {
-            color: #d32f2f;
-            background: #ffebee;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 15px;
-            text-align: center;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تبدیل فرمت فیلم</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Tahoma, Arial, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 30px 15px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .box {
+      background: #fff;
+      padding: 28px 32px;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      max-width: 440px;
+      width: 100%;
+    }
+    h2 {
+      text-align: center;
+      margin: 0 0 22px;
+      color: #222;
+      font-size: 22px;
+    }
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      font-weight: bold;
+      color: #444;
+      font-size: 14px;
+    }
+    input[type="file"], select {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fafafa;
+    }
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 13px;
+      background: #22c55e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover:not(:disabled) { background: #16a34a; }
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;
+      display: none;
+    }
+    .status.info { background: #e0f2fe; color: #0369a1; display: block; }
+    .status.error { background: #fee2e2; color: #b91c1c; display: block; }
+    .status.success { background: #dcfce7; color: #15803d; display: block; }
+    .progress {
+      margin-top: 12px;
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      display: none;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #22c55e;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .note {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      line-height: 1.6;
+    }
+  </style>
 </head>
 <body>
-    <div class="box">
-        <h2>تبدیل فرمت فیلم</h2>
+  <div class="box">
+    <h2>تبدیل فرمت فیلم</h2>
 
-        <form method="post" enctype="multipart/form-data">
-            <label>فیلم را انتخاب کنید:</label>
-            <input type="file" name="video" accept="video/*" required>
+    <label>فیلم را انتخاب کنید:</label>
+    <input type="file" id="videoInput" accept="video/*">
 
-            <label>فرمت خروجی:</label>
-            <select name="format">
-                <option value="mp4">MP4</option>
-                <option value="webm">WebM</option>
-                <option value="ogv">OGV</option>
-                <option value="avi">AVI</option>
-                <option value="mkv">MKV</option>
-                <option value="mov">MOV</option>
-                <option value="flv">FLV</option>
-            </select>
+    <label>فرمت خروجی:</label>
+    <select id="formatSelect">
+      <option value="mp4">MP4</option>
+      <option value="webm">WebM</option>
+      <option value="ogv">OGV</option>
+      <option value="avi">AVI</option>
+      <option value="mkv">MKV</option>
+      <option value="mov">MOV</option>
+      <option value="flv">FLV</option>
+    </select>
 
-            <button type="submit">شروع تبدیل</button>
-        </form>
+    <button id="convertBtn" disabled>شروع تبدیل</button>
 
-        {% if error %}
-            <div class="error">{{ error }}</div>
-        {% endif %}
+    <div class="progress" id="progressBox">
+      <div class="progress-bar" id="progressBar"></div>
     </div>
+
+    <div class="status" id="status"></div>
+
+    <p class="note">
+      اولین بار کمی طول می‌کشد (دانلود موتور تبدیل حدود ۳۰ مگابایت).<br>
+      فایل‌های خیلی بزرگ ممکن است در مرورگر مشکل داشته باشند.
+    </p>
+  </div>
+
+  <script type="module">
+    import { FFmpeg } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
+    import { fetchFile, toBlobURL } from "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js";
+
+    const videoInput = document.getElementById("videoInput");
+    const formatSelect = document.getElementById("formatSelect");
+    const convertBtn = document.getElementById("convertBtn");
+    const statusEl = document.getElementById("status");
+    const progressBox = document.getElementById("progressBox");
+    const progressBar = document.getElementById("progressBar");
+
+    let ffmpeg = null;
+    let loaded = false;
+
+    function showStatus(msg, type = "info") {
+      statusEl.textContent = msg;
+      statusEl.className = "status " + type;
+    }
+
+    function setProgress(percent) {
+      progressBox.style.display = "block";
+      progressBar.style.width = percent + "%";
+    }
+
+    videoInput.addEventListener("change", () => {
+      convertBtn.disabled = !videoInput.files.length;
+    });
+
+    async function loadFFmpeg() {
+      if (loaded) return;
+      showStatus("در حال بارگذاری موتور تبدیل... لطفاً صبر کنید");
+      setProgress(10);
+
+      ffmpeg = new FFmpeg();
+
+      ffmpeg.on("log", ({ message }) => {
+        console.log(message);
+      });
+
+      ffmpeg.on("progress", ({ progress }) => {
+        const p = Math.round(progress * 100);
+        setProgress(Math.min(p, 99));
+        showStatus(`در حال تبدیل... ${p}%`);
+      });
+
+      const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
+
+      await ffmpeg.load({
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+      });
+
+      loaded = true;
+      setProgress(30);
+      showStatus("موتور آماده است. در حال تبدیل...");
+    }
+
+    convertBtn.addEventListener("click", async () => {
+      const file = videoInput.files[0];
+      if (!file) return;
+
+      const format = formatSelect.value;
+      const inputName = "input" + (file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : ".mp4");
+      const outputName = "output." + format;
+
+      convertBtn.disabled = true;
+      progressBox.style.display = "block";
+      setProgress(5);
+
+      try {
+        await loadFFmpeg();
+
+        showStatus("در حال خواندن فایل...");
+        await ffmpeg.writeFile(inputName, await fetchFile(file));
+        setProgress(40);
+
+        // دستورات مناسب برای هر فرمت
+        let args = ["-i", inputName];
+
+        if (format === "webm") {
+          args.push("-c:v", "libvpx-vp9", "-b:v", "1M", "-c:a", "libopus", outputName);
+        } else if (format === "ogv") {
+          args.push("-c:v", "libtheora", "-q:v", "7", "-c:a", "libvorbis", outputName);
+        } else if (format === "mp4" || format === "mov") {
+          args.push("-c:v", "libx264", "-preset", "fast", "-c:a", "aac", outputName);
+        } else {
+          // avi, mkv, flv و بقیه
+          args.push(outputName);
+        }
+
+        showStatus("در حال تبدیل... ممکن است چند دقیقه طول بکشد");
+        await ffmpeg.exec(args);
+        setProgress(95);
+
+        const data = await ffmpeg.readFile(outputName);
+        const mime = {
+          mp4: "video/mp4",
+          webm: "video/webm",
+          ogv: "video/ogg",
+          avi: "video/x-msvideo",
+          mkv: "video/x-matroska",
+          mov: "video/quicktime",
+          flv: "video/x-flv"
+        }[format] || "video/mp4";
+
+        const blob = new Blob([data.buffer], { type: mime });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "converted." + format;
+        a.click();
+
+        URL.revokeObjectURL(url);
+
+        // پاک کردن فایل‌ها از حافظه مجازی
+        await ffmpeg.deleteFile(inputName);
+        await ffmpeg.deleteFile(outputName);
+
+        setProgress(100);
+        showStatus("تبدیل با موفقیت انجام شد! فایل دانلود شد.", "success");
+      } catch (err) {
+        console.error(err);
+        showStatus("خطا در تبدیل: " + (err.message || err), "error");
+      } finally {
+        convertBtn.disabled = false;
+        setTimeout(() => {
+          progressBox.style.display = "none";
+          progressBar.style.width = "0%";
+        }, 2000);
+      }
+    });
+  </script>
 </body>
 </html>
