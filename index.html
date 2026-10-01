@@ -1,244 +1,423 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لیدربورد بازی</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Leaderboard</title>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: Tahoma, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      color: #e2e8f0;
-      margin: 0;
-      padding: 20px;
-      min-height: 100vh;
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:#0b1120;
+      color:#e2e8f0;
+      min-height:100vh;
+      padding:24px 16px;
     }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
+    .wrap{max-width:720px;margin:0 auto}
+    h1{
+      font-size:1.55rem;
+      font-weight:700;
+      text-align:center;
+      color:#38bdf8;
+      margin-bottom:4px;
     }
-    h1 {
-      text-align: center;
-      color: #38bdf8;
-      margin-bottom: 10px;
-      font-size: 1.8rem;
+    .sub{
+      text-align:center;
+      color:#64748b;
+      font-size:.85rem;
+      margin-bottom:20px;
     }
-    .subtitle {
-      text-align: center;
-      color: #94a3b8;
-      margin-bottom: 25px;
-      font-size: 0.95rem;
+    .search-box{margin-bottom:16px}
+    .search-box input{
+      width:100%;
+      padding:12px 16px;
+      border:1px solid #1e293b;
+      border-radius:10px;
+      background:#0f172a;
+      color:#f1f5f9;
+      font-size:.95rem;
+      outline:none;
     }
-    .my-name-box {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 25px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
+    .search-box input:focus{border-color:#0ea5e9}
+    .card{
+      background:#0f172a;
+      border:1px solid #1e293b;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:0 8px 24px rgba(0,0,0,.35);
     }
-    .my-name-box input {
-      flex: 1;
-      min-width: 180px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #475569;
-      background: #0f172a;
-      color: #e2e8f0;
-      font-size: 1rem;
+    table{width:100%;border-collapse:collapse}
+    th{
+      background:#0ea5e9;
+      color:#fff;
+      font-size:.78rem;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+      padding:12px 10px;
+      text-align:left;
     }
-    .my-name-box button {
-      padding: 10px 18px;
-      border-radius: 8px;
-      border: none;
-      background: #0ea5e9;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
+    td{
+      padding:12px 10px;
+      border-bottom:1px solid #1e293b;
+      font-size:.9rem;
     }
-    .my-name-box button:hover { background: #0284c7; }
-    .hint {
-      width: 100%;
-      font-size: 0.85rem;
-      color: #94a3b8;
-      margin-top: 6px;
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#1e293b}
+    .rank{width:42px;font-weight:700;color:#fbbf24;text-align:center}
+    .name{
+      font-weight:600;
+      color:#38bdf8;
+      cursor:pointer;
+      transition:color .15s;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #1e293b;
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    .name:hover{color:#7dd3fc;text-decoration:underline}
+    .wins{color:#4ade80;font-weight:600}
+    .guesses{color:#a78bfa}
+    .date{color:#94a3b8;font-size:.82rem;white-space:nowrap}
+    .msg{
+      text-align:center;
+      padding:48px 16px;
+      color:#64748b;
+      font-size:.95rem;
     }
-    th {
-      background: #0ea5e9;
-      color: white;
-      padding: 14px 12px;
-      font-size: 0.95rem;
+    .msg.error{color:#f87171}
+    .footer{
+      text-align:center;
+      margin-top:14px;
+      font-size:.75rem;
+      color:#475569;
     }
-    td {
-      padding: 13px 12px;
-      border-bottom: 1px solid #334155;
-      text-align: center;
+
+    /* ========== PLAYER CARD MODAL ========== */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(2,6,23,.82);
+      backdrop-filter:blur(8px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:100;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .25s ease;
+      padding:20px;
     }
-    tr:last-child td { border-bottom: none; }
-    tr:hover { background: #334155; }
-    
-    /* ردیف خود کاربر */
-    tr.me {
-      background: #0c4a6e !important;
-      color: #e0f2fe;
+    .overlay.show{
+      opacity:1;
+      pointer-events:auto;
     }
-    tr.me td {
-      border-color: #0369a1;
+    .player-card{
+      width:100%;
+      max-width:380px;
+      background:linear-gradient(165deg,#0f172a 0%,#1e293b 100%);
+      border:1px solid #334155;
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:
+        0 0 0 1px rgba(56,189,248,.15),
+        0 25px 50px -12px rgba(0,0,0,.7),
+        0 0 80px rgba(14,165,233,.12);
+      transform:scale(.92) translateY(20px);
+      transition:transform .3s cubic-bezier(.34,1.56,.64,1);
     }
-    tr.me .rank {
-      color: #7dd3fc;
+    .overlay.show .player-card{
+      transform:scale(1) translateY(0);
     }
-    
-    .rank {
-      font-weight: bold;
-      color: #fbbf24;
-      font-size: 1.05rem;
+    .card-header{
+      background:linear-gradient(135deg,#0ea5e9,#0284c7);
+      padding:28px 24px 22px;
+      text-align:center;
+      position:relative;
     }
-    .player-name {
-      font-weight: 600;
-      color: #f1f5f9;
+    .card-header::after{
+      content:'';
+      position:absolute;
+      bottom:-1px;left:0;right:0;
+      height:20px;
+      background:linear-gradient(to top right,transparent 49%,#1e293b 50%);
     }
-    .wins {
-      color: #4ade80;
-      font-weight: bold;
+    .avatar{
+      width:72px;height:72px;
+      background:rgba(255,255,255,.18);
+      border:3px solid rgba(255,255,255,.4);
+      border-radius:50%;
+      margin:0 auto 12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.8rem;
+      font-weight:700;
+      color:#fff;
+      text-shadow:0 2px 4px rgba(0,0,0,.3);
     }
-    .guesses {
-      color: #a78bfa;
+    .card-name{
+      font-size:1.45rem;
+      font-weight:700;
+      color:#fff;
+      letter-spacing:-.02em;
     }
-    .date {
-      font-size: 0.85rem;
-      color: #94a3b8;
+    .card-rank{
+      display:inline-block;
+      margin-top:6px;
+      background:rgba(0,0,0,.25);
+      color:#e0f2fe;
+      font-size:.8rem;
+      font-weight:600;
+      padding:3px 12px;
+      border-radius:20px;
     }
-    .loading, .empty {
-      text-align: center;
-      padding: 40px;
-      color: #94a3b8;
+    .card-body{
+      padding:24px 22px 20px;
     }
-    .refresh-btn {
-      display: block;
-      margin: 20px auto 0;
-      padding: 10px 22px;
-      background: #334155;
-      color: #e2e8f0;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+    .stat-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-bottom:18px;
     }
-    .refresh-btn:hover { background: #475569; }
+    .stat{
+      background:#0b1120;
+      border:1px solid #1e293b;
+      border-radius:12px;
+      padding:14px 12px;
+      text-align:center;
+    }
+    .stat-value{
+      font-size:1.5rem;
+      font-weight:700;
+      line-height:1.2;
+    }
+    .stat-label{
+      font-size:.72rem;
+      color:#64748b;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      margin-top:4px;
+    }
+    .stat.wins .stat-value{color:#4ade80}
+    .stat.guesses .stat-value{color:#a78bfa}
+    .info-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:10px 0;
+      border-bottom:1px solid #1e293b;
+      font-size:.88rem;
+    }
+    .info-row:last-child{border-bottom:none}
+    .info-label{color:#64748b}
+    .info-value{color:#e2e8f0;font-weight:500}
+    .card-footer{
+      text-align:center;
+      padding:0 22px 18px;
+      font-size:.7rem;
+      color:#475569;
+    }
+    .close-btn{
+      position:absolute;
+      top:12px;right:14px;
+      width:32px;height:32px;
+      border:none;
+      background:rgba(0,0,0,.25);
+      color:#fff;
+      border-radius:50%;
+      font-size:1.1rem;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:background .15s;
+    }
+    .close-btn:hover{background:rgba(0,0,0,.4)}
+
+    @media(max-width:520px){
+      th:nth-child(5),td:nth-child(5){display:none}
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🏆 لیدربورد بازی</h1>
-    <p class="subtitle">نام · بردها · کل حدس‌ها · آخرین برد</p>
+  <div class="wrap">
+    <h1>Leaderboard</h1>
+    <p class="sub">Wins · Guesses · Account Created</p>
 
-    <!-- کادر شناسایی خود کاربر -->
-    <div class="my-name-box">
-      <input type="text" id="myNameInput" placeholder="اسم خودت رو بنویس تا ردیفت آبی بشه...">
-      <button onclick="saveMyName()">ذخیره</button>
-      <div class="hint">اسمی که اینجا می‌نویسی فقط روی دستگاه خودت ذخیره می‌شه و ردیف‌ت آبی می‌شه</div>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Search player name..." autocomplete="off">
     </div>
 
-    <div id="status" class="loading">در حال بارگذاری...</div>
+    <div class="card">
+      <div id="status" class="msg">Loading...</div>
+      <table id="table" style="display:none">
+        <thead>
+          <tr>
+            <th class="rank">#</th>
+            <th>Player</th>
+            <th>Wins</th>
+            <th>Guesses</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p class="footer">Click a player name to view full card · Auto-refresh 40s</p>
+  </div>
 
-    <table id="leaderboard" style="display:none;">
-      <thead>
-        <tr>
-          <th>رتبه</th>
-          <th>نام بازیکن</th>
-          <th>بردها</th>
-          <th>کل حدس‌ها</th>
-          <th>آخرین برد</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-
-    <button class="refresh-btn" onclick="loadLeaderboard()">بروزرسانی</button>
+  <!-- PLAYER CARD OVERLAY -->
+  <div class="overlay" id="overlay">
+    <div class="player-card" id="playerCard">
+      <div class="card-header">
+        <button class="close-btn" id="closeBtn">×</button>
+        <div class="avatar" id="cardAvatar">A</div>
+        <div class="card-name" id="cardName">Player</div>
+        <div class="card-rank" id="cardRank">Rank #1</div>
+      </div>
+      <div class="card-body">
+        <div class="stat-grid">
+          <div class="stat wins">
+            <div class="stat-value" id="cardWins">0</div>
+            <div class="stat-label">Wins</div>
+          </div>
+          <div class="stat guesses">
+            <div class="stat-value" id="cardGuesses">0</div>
+            <div class="stat-label">Guesses</div>
+          </div>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Account Created</span>
+          <span class="info-value" id="cardCreated">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Last Win</span>
+          <span class="info-value" id="cardLastWin">—</span>
+        </div>
+      </div>
+      <div class="card-footer">Player Card · Screenshot Ready</div>
+    </div>
   </div>
 
   <script>
-    // ===== تنظیمات سوپابیس =====
     const SUPABASE_URL = 'https://ihbsxjgzrhnssluqooqh.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_hHyHJI5JkxgLNrXAwZrGWQ_vbD3kdrj';   // کلید anon خودت رو بذار
+    const SUPABASE_ANON_KEY = 'sb_publishable_hHyHJI5JkxgLNrXAwZrGWQ_vbD3kdrj';
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let allRows = [];
 
-    // بارگذاری اسم ذخیره‌شده
-    const savedName = localStorage.getItem('myPlayerName') || '';
-    document.getElementById('myNameInput').value = savedName;
-
-    function saveMyName() {
-      const name = document.getElementById('myNameInput').value.trim();
-      localStorage.setItem('myPlayerName', name);
-      loadLeaderboard(); // دوباره رندر کن تا رنگ عوض بشه
+    function formatDate(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const h = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${y}/${m}/${day} ${h}:${min}`;
     }
 
-    async function loadLeaderboard() {
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function render(rows) {
       const status = document.getElementById('status');
-      const table = document.getElementById('leaderboard');
+      const table = document.getElementById('table');
       const tbody = document.getElementById('tbody');
 
-      status.style.display = 'block';
-      status.textContent = 'در حال بارگذاری...';
-      table.style.display = 'none';
-
-      const { data, error } = await supabase
-        .from('leaderboard')
-        .select('player_name, wins, guesses, last_win_at')
-        .order('wins', { ascending: false })
-        .limit(100);
-
-      if (error) {
-        status.textContent = 'خطا: ' + error.message;
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        status.textContent = 'هنوز هیچ بازیکنی ثبت نشده.';
+      if (!rows.length) {
+        status.className = 'msg';
+        status.textContent = 'No players found';
+        status.style.display = 'block';
+        table.style.display = 'none';
         return;
       }
 
       status.style.display = 'none';
       table.style.display = 'table';
-      tbody.innerHTML = '';
+      tbody.innerHTML = rows.map((r, i) => `
+        <tr>
+          <td class="rank">${i + 1}</td>
+          <td class="name" data-idx="${allRows.indexOf(r)}">${escapeHtml(r.player_name)}</td>
+          <td class="wins">${r.wins}</td>
+          <td class="guesses">${r.guesses ?? 0}</td>
+          <td class="date">${formatDate(r.created_at)}</td>
+        </tr>
+      `).join('');
 
-      const myName = (localStorage.getItem('myPlayerName') || '').trim().toLowerCase();
-
-      data.forEach((row, index) => {
-        const isMe = myName && row.player_name.toLowerCase() === myName;
-        const date = new Date(row.last_win_at).toLocaleString('fa-IR');
-
-        tbody.innerHTML += `
-          <tr class="${isMe ? 'me' : ''}">
-            <td class="rank">#${index + 1}</td>
-            <td class="player-name">${row.player_name}${isMe ? ' (تو)' : ''}</td>
-            <td class="wins">${row.wins}</td>
-            <td class="guesses">${row.guesses || 0}</td>
-            <td class="date">${date}</td>
-          </tr>
-        `;
+      // click handlers
+      tbody.querySelectorAll('.name').forEach(el => {
+        el.addEventListener('click', () => {
+          const idx = +el.dataset.idx;
+          openCard(allRows[idx], idx + 1);
+        });
       });
     }
 
-    // اولین بار
-    loadLeaderboard();
+    function openCard(player, rank) {
+      if (!player) return;
+      document.getElementById('cardAvatar').textContent = (player.player_name || '?')[0].toUpperCase();
+      document.getElementById('cardName').textContent = player.player_name || 'Unknown';
+      document.getElementById('cardRank').textContent = `Rank #${rank}`;
+      document.getElementById('cardWins').textContent = player.wins ?? 0;
+      document.getElementById('cardGuesses').textContent = player.guesses ?? 0;
+      document.getElementById('cardCreated').textContent = formatDate(player.created_at);
+      document.getElementById('cardLastWin').textContent = formatDate(player.last_win_at);
+      document.getElementById('overlay').classList.add('show');
+    }
 
-    // هر ۴۵ ثانیه خودکار بروزرسانی
-    setInterval(loadLeaderboard, 45000);
+    function closeCard() {
+      document.getElementById('overlay').classList.remove('show');
+    }
+
+    document.getElementById('closeBtn').addEventListener('click', closeCard);
+    document.getElementById('overlay').addEventListener('click', e => {
+      if (e.target.id === 'overlay') closeCard();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeCard();
+    });
+
+    async function load() {
+      const status = document.getElementById('status');
+      status.className = 'msg';
+      status.textContent = 'Loading...';
+      status.style.display = 'block';
+      document.getElementById('table').style.display = 'none';
+
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/leaderboard?select=player_name,wins,guesses,created_at,last_win_at&order=wins.desc&limit=150`;
+        const res = await fetch(url, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+        if (!res.ok) throw new Error(`${res.status} – ${await res.text()}`);
+        const data = await res.json();
+        allRows = Array.isArray(data) ? data : [];
+        filter();
+      } catch (err) {
+        status.className = 'msg error';
+        status.textContent = 'Error: ' + err.message;
+        console.error(err);
+      }
+    }
+
+    function filter() {
+      const q = document.getElementById('search').value.trim().toLowerCase();
+      const filtered = q
+        ? allRows.filter(r => (r.player_name || '').toLowerCase().includes(q))
+        : allRows;
+      render(filtered);
+    }
+
+    document.getElementById('search').addEventListener('input', filter);
+
+    load();
+    setInterval(load, 40000);
   </script>
 </body>
 </html>
