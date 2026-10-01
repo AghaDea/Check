@@ -287,7 +287,7 @@
           <td class="rank">${idx + 1}</td>
           <td class="name" data-idx="${idx}"><div class="nm"><span class="pname">${escapeHtml(r.player_name)}</span><span class="st ${on ? 'on' : 'off'}">${on ? 'Online' : 'Offline'}</span></div></td>
           <td class="num">${r.wins}</td>
-          <td class="num">${r.guesses ?? 0}</td>
+          <td class="num">${r.guesses}</td>
           <td class="date">${formatDateHtml(r.created_at)}</td>
           <td class="date visit">${getLogin(r) ? ago(getLogin(r)) : '—'}</td>
         </tr>`;
@@ -351,11 +351,17 @@
       try {
         const url = `${SUPABASE_URL}/rest/v1/leaderboard?select=*&order=wins.desc&limit=150`;
         const res = await fetch(url, {
+          cache: 'no-store',
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
         });
         if (!res.ok) throw new Error(`${res.status} – ${await res.text()}`);
         const data = await res.json();
-        allRows = Array.isArray(data) ? data : [];
+        allRows = (Array.isArray(data) ? data : []).map(r => ({
+          ...r,
+          wins: Number(r.wins) || 0,
+          guesses: Number(r.guesses) || 0   // always this row's own value
+        }));
+        if (location.search.includes('debug')) console.table(allRows.map(r => ({ name: r.player_name, wins: r.wins, guesses: r.guesses })));
 
         const now = Date.now();
         allRows.forEach(r => {
