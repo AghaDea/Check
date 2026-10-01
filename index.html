@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لیست کاربران سرور</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --success: #4ade80;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Tahoma, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 20px;
+    }
+
+    .meta span {
+      background: var(--card);
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      margin-left: 6px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 14px 18px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: #334155;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr:hover td {
+      background: rgba(56, 189, 248, 0.05);
+    }
+
+    .empty, .error, .loading {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--muted);
+    }
+
+    .raw-box {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 400px;
+      overflow-y: auto;
+      direction: ltr;
+      text-align: left;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 600px) {
+      th, td { padding: 10px 12px; font-size: 0.9rem; }
+      h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>لیست کاربران سرور</h1>
+      <div class="meta" id="meta">
+        <span>در حال بارگذاری...</span>
+      </div>
+    </header>
+
+    <div class="card" id="main-content">
+      <div class="loading">در حال دریافت داده‌ها...</div>
+    </div>
+
+    <div class="card" id="raw-section" style="display:none;">
+      <div style="padding:14px 18px; border-bottom:1px solid var(--border); font-weight:600;">
+        محتوای خام فایل
+      </div>
+      <div style="padding:16px;">
+        <div class="raw-box" id="raw-content"></div>
+      </div>
+    </div>
+
+    <footer>
+      داده‌ها هر ۱ ساعت از LemeHost به‌روزرسانی می‌شوند · نمایش زنده هر ۳۰ ثانیه (فقط وقتی صفحه باز است)
+    </footer>
+  </div>
+
+  <script>
+    const DATA_URL = './data/users.json';
+    const POLL_INTERVAL = 30 * 1000; // ۳۰ ثانیه
+    let timer = null;
+    let lastHash = null;
+
+    function formatDate(str) {
+      if (!str) return '-';
+      try {
+        return new Date(str + 'Z').toLocaleString('fa-IR');
+      } catch {
+        return str;
+      }
+    }
+
+    function render(data) {
+      const meta = document.getElementById('meta');
+      const main = document.getElementById('main-content');
+      const rawSection = document.getElementById('raw-section');
+      const rawBox = document.getElementById('raw-content');
+
+      // متا
+      meta.innerHTML = `
+        <span><span class="status-dot"></span> زنده</span>
+        <span>آخرین به‌روزرسانی: ${data.updated_at || '-'}</span>
+        <span>تعداد رکورد: ${(data.users || []).length}</span>
+        <span>فایل: ${data.source_file || '-'}</span>
+      `;
+
+      // جدول کاربران
+      const users = data.users || [];
+      if (users.length === 0) {
+        main.innerHTML = `<div class="empty">هیچ کاربری یافت نشد</div>`;
+      } else {
+        let html = `
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>نام</th>
+                <th>اطلاعات</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        users.forEach((u, i) => {
+          html += `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${escapeHtml(u.name || '-')}</td>
+              <td style="font-size:0.9rem; color:var(--muted); direction:ltr; text-align:left;">
+                ${escapeHtml(u.raw || u.rank || u.id || '-')}
+              </td>
+            </tr>
+          `;
+        });
+        html += `</tbody></table>`;
+        main.innerHTML = html;
+      }
+
+      // محتوای خام
+      if (data.raw_content && data.raw_content.trim()) {
+        rawSection.style.display = 'block';
+        rawBox.textContent = data.raw_content;
+      } else {
+        rawSection.style.display = 'none';
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function fetchData() {
+      // فقط وقتی تب فعال است
+      if (document.hidden) return;
+
+      try {
+        const res = await fetch(DATA_URL + '?t=' + Date.now(), {
+          cache: 'no-store'
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        const data = await res.json();
+        const hash = JSON.stringify(data);
+
+        // فقط اگر تغییر کرده باشد رندر کن
+        if (hash !== lastHash) {
+          lastHash = hash;
+          render(data);
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('main-content').innerHTML =
+          `<div class="error">خطا در دریافت داده: ${err.message}</div>`;
+      }
+    }
+
+    function startPolling() {
+      fetchData(); // اولین بار فوری
+      timer = setInterval(fetchData, POLL_INTERVAL);
+    }
+
+    function stopPolling() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    // مدیریت visibility
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        startPolling();
+      }
+    });
+
+    // شروع
+    if (!document.hidden) {
+      startPolling();
+    }
+  </script>
+</body>
+</html>
