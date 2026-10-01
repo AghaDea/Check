@@ -3,296 +3,673 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لیست کاربران سرور</title>
+  <title>لیست بازیکنان سرور</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --border: #334155;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --accent: #38bdf8;
-      --success: #4ade80;
+      --bg: #0b0f19;
+      --card: #151b2d;
+      --card-hover: #1c2438;
+      --border: #2a3347;
+      --text: #e8edf5;
+      --muted: #8b9bb4;
+      --accent: #6366f1;
+      --accent2: #22d3ee;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --radius: 16px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: Tahoma, 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Segoe UI', Tahoma, system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.6;
       min-height: 100vh;
-      padding: 20px;
+      line-height: 1.5;
     }
 
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-    }
-
+    /* Header */
     header {
-      text-align: center;
-      margin-bottom: 30px;
+      background: linear-gradient(135deg, #151b2d 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
     }
 
-    h1 {
-      font-size: 1.8rem;
-      margin-bottom: 8px;
-      background: linear-gradient(90deg, #38bdf8, #818cf8);
+    .logo {
+      font-size: 1.35rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .meta {
-      color: var(--muted);
-      font-size: 0.95rem;
+    .header-actions {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px 20px;
+      align-items: center;
+      gap: 12px;
     }
 
-    .meta span {
+    .user-badge {
       background: var(--card);
-      padding: 4px 12px;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
       border-radius: 999px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+      padding: 9px 18px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      color: white;
+    }
+    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent;
       border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover { background: var(--card); }
+
+    .btn-danger {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(248, 113, 113, 0.3);
     }
 
-    .status-dot {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success);
-      margin-left: 6px;
-      animation: pulse 2s infinite;
+    /* Main */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+    .stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
     }
 
-    .card {
+    .stat-pill {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 16px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .stat-pill strong { color: var(--text); }
+
+    /* Player Grid - max 3 per row */
+    .players-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 800px) {
+      .players-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 500px) {
+      .players-grid { grid-template-columns: 1fr; }
+    }
+
+    .player-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
       overflow: hidden;
-      margin-bottom: 20px;
     }
 
-    table {
+    .player-card:hover {
+      background: var(--card-hover);
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(99, 102, 241, 0.15);
+    }
+
+    .player-card .status {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-size: 0.7rem;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status.approved {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--success);
+    }
+    .status.pending {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--warning);
+    }
+
+    .player-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      margin: 8px auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .player-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .player-cash {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s;
+      padding: 20px;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
       width: 100%;
-      border-collapse: collapse;
+      max-width: 440px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.95);
+      transition: transform 0.25s;
     }
+    .modal-overlay.active .modal { transform: scale(1); }
 
-    th, td {
-      padding: 14px 18px;
-      text-align: right;
+    .modal-header {
+      padding: 20px 22px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       border-bottom: 1px solid var(--border);
     }
 
-    th {
-      background: #334155;
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: #cbd5e1;
-    }
+    .modal-header h2 { font-size: 1.25rem; }
 
-    tr:last-child td { border-bottom: none; }
-
-    tr:hover td {
-      background: rgba(56, 189, 248, 0.05);
-    }
-
-    .empty, .error, .loading {
-      text-align: center;
-      padding: 50px 20px;
+    .close-btn {
+      background: none;
+      border: none;
       color: var(--muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
     }
+    .close-btn:hover { color: var(--text); }
 
-    .raw-box {
-      background: #0f172a;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      font-family: ui-monospace, monospace;
-      font-size: 0.85rem;
-      white-space: pre-wrap;
-      word-break: break-all;
-      max-height: 400px;
-      overflow-y: auto;
+    .modal-body { padding: 20px 22px 24px; }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--muted); }
+    .detail-value { font-weight: 600; text-align: left; direction: ltr; }
+
+    .weapons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .weapon-tag {
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
       direction: ltr;
-      text-align: left;
     }
 
-    footer {
+    .locked {
+      opacity: 0.45;
+      filter: blur(3px);
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .login-hint {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px dashed var(--accent);
+      border-radius: 12px;
+      padding: 14px;
       text-align: center;
-      margin-top: 40px;
+      margin-top: 16px;
+      font-size: 0.9rem;
       color: var(--muted);
-      font-size: 0.85rem;
     }
 
-    @media (max-width: 600px) {
-      th, td { padding: 10px 12px; font-size: 0.9rem; }
-      h1 { font-size: 1.4rem; }
+    /* Login Modal form */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .form-group input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .form-group input:focus { border-color: var(--accent); }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>لیست کاربران سرور</h1>
-      <div class="meta" id="meta">
-        <span>در حال بارگذاری...</span>
-      </div>
-    </header>
 
-    <div class="card" id="main-content">
-      <div class="loading">در حال دریافت داده‌ها...</div>
+<header>
+  <div class="logo">🎮 Players Dashboard</div>
+  <div class="header-actions">
+    <div class="user-badge" id="userBadge" style="display:none;">
+      <span id="loggedName"></span>
     </div>
-
-    <div class="card" id="raw-section" style="display:none;">
-      <div style="padding:14px 18px; border-bottom:1px solid var(--border); font-weight:600;">
-        محتوای خام فایل
-      </div>
-      <div style="padding:16px;">
-        <div class="raw-box" id="raw-content"></div>
-      </div>
-    </div>
-
-    <footer>
-      داده‌ها هر ۱ ساعت از LemeHost به‌روزرسانی می‌شوند · نمایش زنده هر ۳۰ ثانیه (فقط وقتی صفحه باز است)
-    </footer>
+    <button class="btn btn-primary" id="loginBtn" onclick="openLogin()">ورود</button>
+    <button class="btn btn-danger" id="logoutBtn" style="display:none;" onclick="logout()">خروج</button>
   </div>
+</header>
 
-  <script>
-    const DATA_URL = './data/users.json';
-    const POLL_INTERVAL = 30 * 1000; // ۳۰ ثانیه
-    let timer = null;
-    let lastHash = null;
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="players-grid" id="playersGrid">
+    <div class="empty-state">در حال بارگذاری بازیکنان...</div>
+  </div>
+</main>
 
-    function formatDate(str) {
-      if (!str) return '-';
-      try {
-        return new Date(str + 'Z').toLocaleString('fa-IR');
-      } catch {
-        return str;
-      }
+<!-- Modal جزئیات بازیکن -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">جزئیات بازیکن</h2>
+      <button class="close-btn" onclick="closeModal('detailModal')">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Modal ورود -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>ورود به حساب بازیکن</h2>
+      <button class="close-btn" onclick="closeModal('loginModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--muted); margin-bottom:18px; font-size:0.9rem;">
+        با نام و رمز موجود در دیتابیس وارد شوید تا جزئیات بیشتری ببینید.
+      </p>
+      <div class="form-group">
+        <label>نام بازیکن</label>
+        <input type="text" id="loginName" placeholder="مثلاً HOST" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>رمز عبور</label>
+        <input type="password" id="loginPass" placeholder="رمز" autocomplete="current-password">
+      </div>
+      <div class="error-msg" id="loginError">نام یا رمز اشتباه است</div>
+      <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="doLogin()">ورود</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ==================== State ====================
+  let players = [];
+  let currentUser = null; // { name, password, ... }
+
+  // ==================== Parser ====================
+  function parseSaveData(text) {
+    const result = [];
+    const blocks = text.split(/Player\s*\{/).slice(1);
+
+    for (const block of blocks) {
+      const end = block.indexOf('}');
+      if (end === -1) continue;
+      const lines = block.slice(0, end).trim().split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+      if (lines.length < 5) continue;
+
+      const status = lines[0].toLowerCase();          // approved / pending
+      const name = lines[1];
+      const password = lines[2];
+      const extra = lines[3];                          // none
+      const inventoryLine = lines[4] || '';
+      const colorLine = lines[5] || '';
+      const posLine = lines[6] || '';
+
+      // Parse cash and weapons
+      let cash = 0;
+      const weapons = [];
+      const invParts = inventoryLine.match(/(\w+)\((\d+)\)/g) || [];
+      invParts.forEach(p => {
+        const m = p.match(/(\w+)\((\d+)\)/);
+        if (!m) return;
+        const key = m[1].toLowerCase();
+        const val = parseInt(m[2], 10);
+        if (key === 'cash') cash = val;
+        else weapons.push({ name: key.replace('weapon_', ''), count: val });
+      });
+
+      result.push({
+        status,           // approved | pending
+        name,
+        password,
+        extra,
+        cash,
+        weapons,
+        color: colorLine,
+        position: posLine,
+        isActive: status === 'approved'
+      });
+    }
+    return result;
+  }
+
+  // ==================== Render ====================
+  function renderPlayers() {
+    const grid = document.getElementById('playersGrid');
+    const stats = document.getElementById('stats');
+
+    if (!players.length) {
+      grid.innerHTML = '<div class="empty-state">هیچ بازیکنی یافت نشد</div>';
+      return;
     }
 
-    function render(data) {
-      const meta = document.getElementById('meta');
-      const main = document.getElementById('main-content');
-      const rawSection = document.getElementById('raw-section');
-      const rawBox = document.getElementById('raw-content');
+    const active = players.filter(p => p.isActive).length;
+    stats.innerHTML = `
+      <div class="stat-pill">کل بازیکنان: <strong>${players.length}</strong></div>
+      <div class="stat-pill">فعال: <strong style="color:var(--success)">${active}</strong></div>
+      <div class="stat-pill">غیرفعال: <strong style="color:var(--warning)">${players.length - active}</strong></div>
+    `;
 
-      // متا
-      meta.innerHTML = `
-        <span><span class="status-dot"></span> زنده</span>
-        <span>آخرین به‌روزرسانی: ${data.updated_at || '-'}</span>
-        <span>تعداد رکورد: ${(data.users || []).length}</span>
-        <span>فایل: ${data.source_file || '-'}</span>
+    grid.innerHTML = players.map((p, i) => {
+      const initial = p.name.charAt(0).toUpperCase();
+      // generate a consistent color from name
+      const hue = [...p.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+      const bg = `linear-gradient(135deg, hsl(${hue},70%,45%), hsl(${(hue+40)%360},70%,35%))`;
+
+      return `
+        <div class="player-card" onclick="showDetail(${i})">
+          <span class="status ${p.isActive ? 'approved' : 'pending'}">
+            ${p.isActive ? 'فعال' : 'غیرفعال'}
+          </span>
+          <div class="player-avatar" style="background:${bg}">${initial}</div>
+          <div class="player-name">${escapeHtml(p.name)}</div>
+          <div class="player-cash">💰 ${p.cash}</div>
+        </div>
       `;
+    }).join('');
+  }
 
-      // جدول کاربران
-      const users = data.users || [];
-      if (users.length === 0) {
-        main.innerHTML = `<div class="empty">هیچ کاربری یافت نشد</div>`;
-      } else {
-        let html = `
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>نام</th>
-                <th>اطلاعات</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-        users.forEach((u, i) => {
-          html += `
-            <tr>
-              <td>${i + 1}</td>
-              <td>${escapeHtml(u.name || '-')}</td>
-              <td style="font-size:0.9rem; color:var(--muted); direction:ltr; text-align:left;">
-                ${escapeHtml(u.raw || u.rank || u.id || '-')}
-              </td>
-            </tr>
-          `;
-        });
-        html += `</tbody></table>`;
-        main.innerHTML = html;
-      }
+  function showDetail(index) {
+    const p = players[index];
+    if (!p) return;
 
-      // محتوای خام
-      if (data.raw_content && data.raw_content.trim()) {
-        rawSection.style.display = 'block';
-        rawBox.textContent = data.raw_content;
-      } else {
-        rawSection.style.display = 'none';
-      }
+    const isOwner = currentUser && currentUser.name.toLowerCase() === p.name.toLowerCase();
+    const canSeePrivate = isOwner;
+
+    document.getElementById('modalTitle').textContent = p.name;
+
+    let weaponsHtml = p.weapons
+      .filter(w => w.count > 0)
+      .map(w => `<span class="weapon-tag">${w.name} × ${w.count}</span>`)
+      .join('') || '<span style="color:var(--muted)">بدون سلاح</span>';
+
+    let html = `
+      <div class="detail-row">
+        <span class="detail-label">وضعیت</span>
+        <span class="detail-value" style="color:${p.isActive ? 'var(--success)' : 'var(--warning)'}">
+          ${p.isActive ? 'فعال (approved)' : 'غیرفعال (pending)'}
+        </span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">نام</span>
+        <span class="detail-value">${escapeHtml(p.name)}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">پول (Cash)</span>
+        <span class="detail-value">💰 ${p.cash}</span>
+      </div>
+      <div class="detail-row" style="flex-direction:column; align-items:flex-start; gap:6px;">
+        <span class="detail-label">سلاح‌ها</span>
+        <div class="weapons">${weaponsHtml}</div>
+      </div>
+    `;
+
+    // Private section
+    if (canSeePrivate) {
+      html += `
+        <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
+          <div style="font-size:0.85rem; color:var(--accent2); margin-bottom:10px;">🔓 جزئیات خصوصی (شما وارد شده‌اید)</div>
+          <div class="detail-row">
+            <span class="detail-label">رمز عبور</span>
+            <span class="detail-value">${escapeHtml(p.password)}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">رنگ / RGB</span>
+            <span class="detail-value">${escapeHtml(p.color)}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">موقعیت آخر</span>
+            <span class="detail-value">${escapeHtml(p.position)}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">extra</span>
+            <span class="detail-value">${escapeHtml(p.extra)}</span>
+          </div>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="login-hint">
+          برای دیدن رمز، موقعیت و جزئیات بیشتر<br>
+          با حساب <strong>${escapeHtml(p.name)}</strong> وارد شوید
+        </div>
+      `;
     }
 
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
+    document.getElementById('modalBody').innerHTML = html;
+    openModal('detailModal');
+  }
+
+  // ==================== Auth ====================
+  function openLogin() {
+    document.getElementById('loginName').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginError').style.display = 'none';
+    openModal('loginModal');
+  }
+
+  function doLogin() {
+    const name = document.getElementById('loginName').value.trim();
+    const pass = document.getElementById('loginPass').value;
+
+    const found = players.find(p =>
+      p.name.toLowerCase() === name.toLowerCase() && p.password === pass
+    );
+
+    if (!found) {
+      document.getElementById('loginError').style.display = 'block';
+      return;
     }
 
-    async function fetchData() {
-      // فقط وقتی تب فعال است
-      if (document.hidden) return;
+    currentUser = found;
+    localStorage.setItem('playerAuth', JSON.stringify({ name: found.name, password: found.password }));
+    updateAuthUI();
+    closeModal('loginModal');
+  }
 
-      try {
-        const res = await fetch(DATA_URL + '?t=' + Date.now(), {
-          cache: 'no-store'
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+  function logout() {
+    currentUser = null;
+    localStorage.removeItem('playerAuth');
+    updateAuthUI();
+  }
 
-        const data = await res.json();
-        const hash = JSON.stringify(data);
+  function updateAuthUI() {
+    const badge = document.getElementById('userBadge');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-        // فقط اگر تغییر کرده باشد رندر کن
-        if (hash !== lastHash) {
-          lastHash = hash;
-          render(data);
-        }
-      } catch (err) {
-        console.error(err);
-        document.getElementById('main-content').innerHTML =
-          `<div class="error">خطا در دریافت داده: ${err.message}</div>`;
+    if (currentUser) {
+      badge.style.display = 'flex';
+      document.getElementById('loggedName').textContent = currentUser.name;
+      loginBtn.style.display = 'none';
+      logoutBtn.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+      loginBtn.style.display = 'inline-block';
+      logoutBtn.style.display = 'none';
+    }
+  }
+
+  function restoreSession() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('playerAuth') || 'null');
+      if (saved) {
+        const found = players.find(p =>
+          p.name.toLowerCase() === saved.name.toLowerCase() && p.password === saved.password
+        );
+        if (found) currentUser = found;
       }
-    }
+    } catch {}
+    updateAuthUI();
+  }
 
-    function startPolling() {
-      fetchData(); // اولین بار فوری
-      timer = setInterval(fetchData, POLL_INTERVAL);
-    }
+  // ==================== Helpers ====================
+  function openModal(id) {
+    document.getElementById(id).classList.add('active');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+  }
 
-    function stopPolling() {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
-      }
-    }
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
 
-    // مدیریت visibility
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        stopPolling();
-      } else {
-        startPolling();
-      }
+  // Close modal on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target === el) el.classList.remove('active');
     });
+  });
 
-    // شروع
-    if (!document.hidden) {
+  // ==================== Load Data ====================
+  async function loadData() {
+    try {
+      const res = await fetch('save-data.txt?t=' + Date.now());
+      const text = await res.text();
+      players = parseSaveData(text);
+      restoreSession();
+      renderPlayers();
+    } catch (err) {
+      document.getElementById('playersGrid').innerHTML =
+        `<div class="empty-state">خطا در بارگذاری داده: ${err.message}</div>`;
+    }
+  }
+
+  // Auto refresh every 30s only when tab is visible
+  let timer = null;
+  function startPolling() {
+    loadData();
+    timer = setInterval(() => {
+      if (!document.hidden) loadData();
+    }, 30000);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(timer);
+      timer = null;
+    } else if (!timer) {
       startPolling();
     }
-  </script>
+  });
+
+  startPolling();
+</script>
 </body>
 </html>
