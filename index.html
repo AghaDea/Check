@@ -57,6 +57,7 @@
     tr.is-on td{background:rgba(34,197,94,.06)}
     tr.is-on td.rank{box-shadow:inset 3px 0 0 var(--on)}
     td.date{color:var(--muted);font-size:.78rem;line-height:1.35;white-space:nowrap}
+    td.visit{color:var(--gold)}
     td.date b{display:block;font-weight:600;color:#b4b4bc}
     .msg{text-align:center;padding:48px 16px;color:var(--muted);font-size:.95rem}
     .msg.error{color:var(--off)}
@@ -174,6 +175,7 @@
             <th class="num">Wins</th>
             <th class="num">Guesses</th>
             <th>Created</th>
+            <th>Last Visit</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -204,6 +206,7 @@
         </div>
         <div class="info">
           <div class="info-row"><span class="info-label">Account Created</span><span class="info-value" id="cardCreated">—</span></div>
+          <div class="info-row"><span class="info-label">Last Visit</span><span class="info-value" id="cardLastLogin">—</span></div>
           <div class="info-row"><span class="info-label">Last Win</span><span class="info-value" id="cardLastWin">—</span></div>
         </div>
         <div class="card-footer"><span>Leaderboard</span><span id="cardStamp"></span></div>
@@ -214,6 +217,10 @@
   <script>
     const SUPABASE_URL = 'https://ihbsxjgzrhnssluqooqh.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_hHyHJI5JkxgLNrXAwZrGWQ_vbD3kdrj';
+    // name of the "last login" column in your table (auto-detects common names)
+    const LOGIN_FIELD = 'last_seen_at';
+    const LOGIN_FALLBACKS = ['last_seen_at','last_login','last_login_at','last_seen','last_active_at','last_active'];
+    const getLogin = p => p[LOGIN_FIELD] || LOGIN_FALLBACKS.map(k => p[k]).find(Boolean) || null;
 
     let allRows = [];
     let openName = null;
@@ -238,6 +245,13 @@
       if (!iso) return '—';
       const d = new Date(iso);
       return `<b>${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())}</b>${p2(d.getHours())}:${p2(d.getMinutes())}`;
+    }
+    function ago(iso) {
+      const sec = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+      if (sec < 60) return 'just now';
+      if (sec < 3600) return Math.floor(sec / 60) + 'm ago';
+      if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
+      return Math.floor(sec / 86400) + 'd ago';
     }
     function escapeHtml(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -275,6 +289,7 @@
           <td class="num">${r.wins}</td>
           <td class="num">${r.guesses ?? 0}</td>
           <td class="date">${formatDateHtml(r.created_at)}</td>
+          <td class="date visit">${getLogin(r) ? ago(getLogin(r)) : '—'}</td>
         </tr>`;
       }).join('');
 
@@ -301,6 +316,7 @@
       $('cardRate').textContent = rate + '%';
       $('cardArc').style.strokeDashoffset = 263.9 * (1 - rate / 100);
       $('cardCreated').textContent = formatDate(player.created_at);
+      $('cardLastLogin').textContent = (getLogin(player) ? formatDate(getLogin(player)) + ' · ' + ago(getLogin(player)) : '—');
       $('cardLastWin').textContent = formatDate(player.last_win_at);
       $('cardStamp').textContent = new Date().toISOString().slice(0, 10);
       const st = $('cardStatus');
@@ -333,7 +349,7 @@
     async function load() {
       const status = document.getElementById('status');
       try {
-        const url = `${SUPABASE_URL}/rest/v1/leaderboard?select=player_name,wins,guesses,created_at,last_win_at&order=wins.desc&limit=150`;
+        const url = `${SUPABASE_URL}/rest/v1/leaderboard?select=*&order=wins.desc&limit=150`;
         const res = await fetch(url, {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
         });
