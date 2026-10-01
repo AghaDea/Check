@@ -89,148 +89,115 @@
       color:#475569;
     }
 
+    /* ===== ONLINE / OFFLINE ===== */
+    .pname{cursor:pointer}
+    .pname:hover{text-decoration:underline}
+    .st{
+      display:inline-flex;align-items:center;gap:5px;
+      margin-left:10px;font-size:.68rem;font-weight:700;
+      letter-spacing:.03em;vertical-align:middle;
+    }
+    .st::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+    .st.on{color:#22c55e}
+    .st.on::before{box-shadow:0 0 0 0 rgba(34,197,94,.7);animation:pulse 1.4s infinite}
+    .st.off{color:#ef4444}
+    tr.is-on td{background:rgba(34,197,94,.06)}
+    tr.is-on td:first-child{box-shadow:inset 3px 0 0 #22c55e}
+    @keyframes pulse{70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+
     /* ========== PLAYER CARD MODAL ========== */
     .overlay{
-      position:fixed;
-      inset:0;
-      background:rgba(2,6,23,.82);
-      backdrop-filter:blur(8px);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      z-index:100;
-      opacity:0;
-      pointer-events:none;
-      transition:opacity .25s ease;
-      padding:20px;
+      position:fixed;inset:0;
+      background:rgba(2,6,23,.85);
+      backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+      display:flex;align-items:center;justify-content:center;
+      z-index:100;opacity:0;pointer-events:none;
+      transition:opacity .25s ease;padding:20px;overflow-y:auto;
     }
-    .overlay.show{
-      opacity:1;
-      pointer-events:auto;
-    }
+    .overlay.show{opacity:1;pointer-events:auto}
     .player-card{
-      width:100%;
-      max-width:380px;
-      background:linear-gradient(165deg,#0f172a 0%,#1e293b 100%);
-      border:1px solid #334155;
-      border-radius:20px;
-      overflow:hidden;
-      box-shadow:
-        0 0 0 1px rgba(56,189,248,.15),
-        0 25px 50px -12px rgba(0,0,0,.7),
-        0 0 80px rgba(14,165,233,.12);
-      transform:scale(.92) translateY(20px);
-      transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+      position:relative;width:100%;max-width:360px;margin:auto;
+      border-radius:26px;padding:2px;
+      background:linear-gradient(145deg,#38bdf8,#6366f1 45%,#a855f7 75%,#f59e0b);
+      box-shadow:0 30px 70px -10px rgba(0,0,0,.8),0 0 90px rgba(99,102,241,.35);
+      transform:scale(.9) translateY(24px);
+      transition:transform .35s cubic-bezier(.34,1.56,.64,1);
     }
-    .overlay.show .player-card{
-      transform:scale(1) translateY(0);
+    .overlay.show .player-card{transform:none}
+    .pc-inner{
+      position:relative;overflow:hidden;border-radius:24px;
+      background:
+        radial-gradient(circle at 20% 0%,rgba(56,189,248,.28),transparent 55%),
+        radial-gradient(circle at 100% 30%,rgba(168,85,247,.22),transparent 50%),
+        linear-gradient(180deg,#111a33 0%,#0a1020 100%);
+      padding:30px 22px 20px;text-align:center;
     }
-    .card-header{
-      background:linear-gradient(135deg,#0ea5e9,#0284c7);
-      padding:28px 24px 22px;
-      text-align:center;
-      position:relative;
+    .pc-inner::before{ /* subtle grid texture */
+      content:'';position:absolute;inset:0;opacity:.07;pointer-events:none;
+      background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);
+      background-size:22px 22px;
     }
-    .card-header::after{
-      content:'';
-      position:absolute;
-      bottom:-1px;left:0;right:0;
-      height:20px;
-      background:linear-gradient(to top right,transparent 49%,#1e293b 50%);
+    .pc-inner>*{position:relative}
+    .close-btn{
+      position:absolute;top:-2px;right:-2px;z-index:3;
+      width:34px;height:34px;border:none;border-radius:50%;
+      background:rgba(255,255,255,.1);color:#fff;font-size:1.3rem;line-height:1;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      transition:background .15s,transform .15s;
+    }
+    .close-btn:hover{background:rgba(255,255,255,.22);transform:rotate(90deg)}
+    .pc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-right:30px}
+    .pc-brand{font-size:.68rem;font-weight:700;letter-spacing:.2em;color:#94a3b8;text-transform:uppercase}
+    .pc-status{
+      display:inline-flex;align-items:center;gap:6px;
+      font-size:.72rem;font-weight:700;padding:4px 11px;border-radius:99px;
+      border:1px solid currentColor;background:rgba(0,0,0,.25);
+    }
+    .pc-status::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+    .pc-status.on{color:#22c55e}
+    .pc-status.on::before{animation:pulse 1.4s infinite}
+    .pc-status.off{color:#ef4444}
+    .avatar-ring{
+      width:104px;height:104px;margin:0 auto 14px;border-radius:50%;padding:4px;
+      background:conic-gradient(from 180deg,#38bdf8,#6366f1,#a855f7,#f59e0b,#38bdf8);
+      box-shadow:0 0 40px rgba(99,102,241,.5);
     }
     .avatar{
-      width:72px;height:72px;
-      background:rgba(255,255,255,.18);
-      border:3px solid rgba(255,255,255,.4);
-      border-radius:50%;
-      margin:0 auto 12px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:1.8rem;
-      font-weight:700;
-      color:#fff;
-      text-shadow:0 2px 4px rgba(0,0,0,.3);
+      width:100%;height:100%;border-radius:50%;
+      background:linear-gradient(145deg,#1e293b,#0b1120);
+      display:flex;align-items:center;justify-content:center;
+      font-size:2.6rem;font-weight:800;color:#fff;
     }
     .card-name{
-      font-size:1.45rem;
-      font-weight:700;
-      color:#fff;
-      letter-spacing:-.02em;
+      font-size:1.6rem;font-weight:800;color:#fff;letter-spacing:-.02em;
+      word-break:break-word;line-height:1.2;
     }
     .card-rank{
-      display:inline-block;
-      margin-top:6px;
-      background:rgba(0,0,0,.25);
-      color:#e0f2fe;
-      font-size:.8rem;
-      font-weight:600;
-      padding:3px 12px;
-      border-radius:20px;
+      display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+      background:linear-gradient(90deg,#f59e0b,#fbbf24);color:#422006;
+      font-size:.8rem;font-weight:800;padding:5px 15px;border-radius:99px;
+      box-shadow:0 4px 16px rgba(245,158,11,.35);
     }
-    .card-body{
-      padding:24px 22px 20px;
-    }
-    .stat-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-      margin-bottom:18px;
-    }
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0 14px}
     .stat{
-      background:#0b1120;
-      border:1px solid #1e293b;
-      border-radius:12px;
-      padding:14px 12px;
-      text-align:center;
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+      border-radius:14px;padding:13px 6px;
     }
-    .stat-value{
-      font-size:1.5rem;
-      font-weight:700;
-      line-height:1.2;
-    }
-    .stat-label{
-      font-size:.72rem;
-      color:#64748b;
-      text-transform:uppercase;
-      letter-spacing:.04em;
-      margin-top:4px;
-    }
+    .stat-value{font-size:1.4rem;font-weight:800;line-height:1.1}
+    .stat-label{font-size:.62rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-top:5px}
     .stat.wins .stat-value{color:#4ade80}
     .stat.guesses .stat-value{color:#a78bfa}
+    .stat.rate .stat-value{color:#38bdf8}
+    .bar{height:7px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin-bottom:16px}
+    .bar>i{display:block;height:100%;width:0;border-radius:99px;
+      background:linear-gradient(90deg,#38bdf8,#6366f1,#a855f7);transition:width .7s ease}
     .info-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:10px 0;
-      border-bottom:1px solid #1e293b;
-      font-size:.88rem;
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+      padding:10px 2px;border-top:1px solid rgba(255,255,255,.07);font-size:.84rem;
     }
-    .info-row:last-child{border-bottom:none}
-    .info-label{color:#64748b}
-    .info-value{color:#e2e8f0;font-weight:500}
-    .card-footer{
-      text-align:center;
-      padding:0 22px 18px;
-      font-size:.7rem;
-      color:#475569;
-    }
-    .close-btn{
-      position:absolute;
-      top:12px;right:14px;
-      width:32px;height:32px;
-      border:none;
-      background:rgba(0,0,0,.25);
-      color:#fff;
-      border-radius:50%;
-      font-size:1.1rem;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      transition:background .15s;
-    }
-    .close-btn:hover{background:rgba(0,0,0,.4)}
+    .info-label{color:#94a3b8}
+    .info-value{color:#e2e8f0;font-weight:600;text-align:right}
+    .card-footer{margin-top:14px;font-size:.62rem;letter-spacing:.18em;color:#475569;text-transform:uppercase}
 
     @media(max-width:520px){
       th:nth-child(5),td:nth-child(5){display:none}
@@ -261,39 +228,31 @@
         <tbody id="tbody"></tbody>
       </table>
     </div>
-    <p class="footer">Click a player name to view full card · Auto-refresh 40s</p>
+    <p class="footer">Click a player name to view full card · Live · Online = edited in the last 3s</p>
   </div>
 
   <!-- PLAYER CARD OVERLAY -->
   <div class="overlay" id="overlay">
     <div class="player-card" id="playerCard">
-      <div class="card-header">
-        <button class="close-btn" id="closeBtn">×</button>
-        <div class="avatar" id="cardAvatar">A</div>
+      <button class="close-btn" id="closeBtn" aria-label="Close">×</button>
+      <div class="pc-inner">
+        <div class="pc-top">
+          <span class="pc-brand">Player Card</span>
+          <span class="pc-status off" id="cardStatus">Offline</span>
+        </div>
+        <div class="avatar-ring"><div class="avatar" id="cardAvatar">A</div></div>
         <div class="card-name" id="cardName">Player</div>
         <div class="card-rank" id="cardRank">Rank #1</div>
-      </div>
-      <div class="card-body">
         <div class="stat-grid">
-          <div class="stat wins">
-            <div class="stat-value" id="cardWins">0</div>
-            <div class="stat-label">Wins</div>
-          </div>
-          <div class="stat guesses">
-            <div class="stat-value" id="cardGuesses">0</div>
-            <div class="stat-label">Guesses</div>
-          </div>
+          <div class="stat wins"><div class="stat-value" id="cardWins">0</div><div class="stat-label">Wins</div></div>
+          <div class="stat guesses"><div class="stat-value" id="cardGuesses">0</div><div class="stat-label">Guesses</div></div>
+          <div class="stat rate"><div class="stat-value" id="cardRate">0%</div><div class="stat-label">Win rate</div></div>
         </div>
-        <div class="info-row">
-          <span class="info-label">Account Created</span>
-          <span class="info-value" id="cardCreated">—</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Last Win</span>
-          <span class="info-value" id="cardLastWin">—</span>
-        </div>
+        <div class="bar"><i id="cardBar"></i></div>
+        <div class="info-row"><span class="info-label">Account Created</span><span class="info-value" id="cardCreated">—</span></div>
+        <div class="info-row"><span class="info-label">Last Win</span><span class="info-value" id="cardLastWin">—</span></div>
+        <div class="card-footer">Leaderboard · Screenshot Ready</div>
       </div>
-      <div class="card-footer">Player Card · Screenshot Ready</div>
     </div>
   </div>
 
@@ -302,6 +261,17 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_hHyHJI5JkxgLNrXAwZrGWQ_vbD3kdrj';
 
     let allRows = [];
+    let openName = null;
+    const ONLINE_MS = 3000;   // no edit for >3s => Offline
+    const POLL_MS = 1500;     // fast silent polling so edits are caught live
+    const seen = new Map();   // player_name -> {sig, lastChange}
+    let firstLoad = true;
+    let lastOnlineKey = '';
+
+    const isOnline = r => {
+      const e = seen.get(r.player_name);
+      return !!(e && e.lastChange && Date.now() - e.lastChange <= ONLINE_MS);
+    };
 
     function formatDate(iso) {
       if (!iso) return '—';
@@ -329,25 +299,35 @@
 
       if (!rows.length) {
         status.className = 'msg';
-        status.textContent = 'No players found';
+        status.textContent = firstLoad ? 'Loading...' : 'No players found';
         status.style.display = 'block';
         table.style.display = 'none';
         return;
       }
 
+      // players being edited right now go to the top (most recent edit first)
+      const ordered = rows.map((r, i) => ({ r, i }));
+      ordered.sort((a, b) => {
+        const ea = isOnline(a.r) ? seen.get(a.r.player_name).lastChange : 0;
+        const eb = isOnline(b.r) ? seen.get(b.r.player_name).lastChange : 0;
+        return (eb - ea) || (a.i - b.i);
+      });
+
       status.style.display = 'none';
       table.style.display = 'table';
-      tbody.innerHTML = rows.map((r, i) => `
-        <tr>
-          <td class="rank">${i + 1}</td>
-          <td class="name" data-idx="${allRows.indexOf(r)}">${escapeHtml(r.player_name)}</td>
+      tbody.innerHTML = ordered.map(({ r }) => {
+        const idx = allRows.indexOf(r);
+        const on = isOnline(r);
+        return `
+        <tr class="${on ? 'is-on' : ''}">
+          <td class="rank">${idx + 1}</td>
+          <td class="name" data-idx="${idx}"><span class="pname">${escapeHtml(r.player_name)}</span><span class="st ${on ? 'on' : 'off'}">${on ? 'Online' : 'Offline'}</span></td>
           <td class="wins">${r.wins}</td>
           <td class="guesses">${r.guesses ?? 0}</td>
           <td class="date">${formatDate(r.created_at)}</td>
-        </tr>
-      `).join('');
+        </tr>`;
+      }).join('');
 
-      // click handlers
       tbody.querySelectorAll('.name').forEach(el => {
         el.addEventListener('click', () => {
           const idx = +el.dataset.idx;
@@ -356,20 +336,41 @@
       });
     }
 
-    function openCard(player, rank) {
-      if (!player) return;
-      document.getElementById('cardAvatar').textContent = (player.player_name || '?')[0].toUpperCase();
+    function fillCard(player, rank) {
+      const wins = +player.wins || 0, guesses = +player.guesses || 0;
+      const rate = guesses > 0 ? Math.min(100, Math.round(wins / guesses * 100)) : 0;
+      const on = isOnline(player);
+      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏆';
+      document.getElementById('cardAvatar').textContent = (player.player_name || '?').trim().charAt(0).toUpperCase() || '?';
       document.getElementById('cardName').textContent = player.player_name || 'Unknown';
-      document.getElementById('cardRank').textContent = `Rank #${rank}`;
-      document.getElementById('cardWins').textContent = player.wins ?? 0;
-      document.getElementById('cardGuesses').textContent = player.guesses ?? 0;
+      document.getElementById('cardRank').textContent = `${medal} Rank #${rank}`;
+      document.getElementById('cardWins').textContent = wins;
+      document.getElementById('cardGuesses').textContent = guesses;
+      document.getElementById('cardRate').textContent = rate + '%';
+      document.getElementById('cardBar').style.width = rate + '%';
       document.getElementById('cardCreated').textContent = formatDate(player.created_at);
       document.getElementById('cardLastWin').textContent = formatDate(player.last_win_at);
+      const st = document.getElementById('cardStatus');
+      st.className = 'pc-status ' + (on ? 'on' : 'off');
+      st.textContent = on ? 'Online' : 'Offline';
+    }
+
+    function openCard(player, rank) {
+      if (!player) return;
+      openName = player.player_name;
+      fillCard(player, rank);
       document.getElementById('overlay').classList.add('show');
+    }
+
+    function refreshOpenCard() {
+      if (!openName) return;
+      const i = allRows.findIndex(r => r.player_name === openName);
+      if (i >= 0) fillCard(allRows[i], i + 1);
     }
 
     function closeCard() {
       document.getElementById('overlay').classList.remove('show');
+      openName = null;
     }
 
     document.getElementById('closeBtn').addEventListener('click', closeCard);
@@ -382,11 +383,6 @@
 
     async function load() {
       const status = document.getElementById('status');
-      status.className = 'msg';
-      status.textContent = 'Loading...';
-      status.style.display = 'block';
-      document.getElementById('table').style.display = 'none';
-
       try {
         const url = `${SUPABASE_URL}/rest/v1/leaderboard?select=player_name,wins,guesses,created_at,last_win_at&order=wins.desc&limit=150`;
         const res = await fetch(url, {
@@ -398,12 +394,32 @@
         if (!res.ok) throw new Error(`${res.status} – ${await res.text()}`);
         const data = await res.json();
         allRows = Array.isArray(data) ? data : [];
+
+        // detect edits: any change in wins / guesses / last win since previous poll
+        const now = Date.now();
+        allRows.forEach(r => {
+          const sig = `${r.wins}|${r.guesses}|${r.last_win_at}`;
+          const e = seen.get(r.player_name);
+          if (!e) seen.set(r.player_name, { sig, lastChange: firstLoad ? 0 : now });
+          else if (e.sig !== sig) { e.sig = sig; e.lastChange = now; }
+        });
+        firstLoad = false;
         filter();
+        refreshOpenCard();
       } catch (err) {
-        status.className = 'msg error';
-        status.textContent = 'Error: ' + err.message;
+        if (firstLoad || !allRows.length) {
+          status.className = 'msg error';
+          status.textContent = 'Error: ' + err.message;
+          status.style.display = 'block';
+          document.getElementById('table').style.display = 'none';
+        }
         console.error(err);
       }
+    }
+
+    async function loop() {
+      await load();
+      setTimeout(loop, POLL_MS);
     }
 
     function filter() {
@@ -416,8 +432,17 @@
 
     document.getElementById('search').addEventListener('input', filter);
 
-    load();
-    setInterval(load, 40000);
+    // flip Online -> Offline exactly when the 3s window passes
+    setInterval(() => {
+      const key = allRows.filter(isOnline).map(r => r.player_name).join('|');
+      if (key !== lastOnlineKey) {
+        lastOnlineKey = key;
+        filter();
+        refreshOpenCard();
+      }
+    }, 300);
+
+    loop();
   </script>
 </body>
 </html>
