@@ -49,6 +49,7 @@
     .nm{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px}
     .pname{font-weight:700;color:var(--text);cursor:pointer;word-break:break-word}
     .pname:hover{color:var(--gold)}
+    .dv{font-size:.8rem;opacity:.8}
     .st{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:800;letter-spacing:.04em}
     .st::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
     .st.on{color:var(--on)}
@@ -207,6 +208,10 @@
         <div class="info">
           <div class="info-row"><span class="info-label">Account Created</span><span class="info-value" id="cardCreated">—</span></div>
           <div class="info-row"><span class="info-label">Last Visit</span><span class="info-value" id="cardLastLogin">—</span></div>
+          <div class="info-row"><span class="info-label">Device</span><span class="info-value" id="cardDevice">—</span></div>
+          <div class="info-row"><span class="info-label">Location</span><span class="info-value" id="cardLoc">—</span></div>
+          <div class="info-row"><span class="info-label">IP</span><span class="info-value" id="cardIp">—</span></div>
+          <div class="info-row"><span class="info-label">Visits</span><span class="info-value" id="cardVisits">—</span></div>
           <div class="info-row"><span class="info-label">Last Win</span><span class="info-value" id="cardLastWin">—</span></div>
         </div>
         <div class="card-footer"><span>Leaderboard</span><span id="cardStamp"></span></div>
@@ -253,6 +258,11 @@
       if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
       return Math.floor(sec / 86400) + 'd ago';
     }
+    function flag(cc) {
+      if (!cc || !/^[A-Za-z]{2}$/.test(cc) || cc.toUpperCase() === 'XX') return '';
+      return String.fromCodePoint(...[...cc.toUpperCase()].map(c => 127397 + c.charCodeAt(0)));
+    }
+    const devIcon = d => d === 'Mobile' ? '📱' : d === 'Tablet' ? '📟' : d === 'Desktop' ? '💻' : '';
     function escapeHtml(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
@@ -285,7 +295,7 @@
         return `
         <tr class="${on ? 'is-on' : ''}">
           <td class="rank">${idx + 1}</td>
-          <td class="name" data-idx="${idx}"><div class="nm"><span class="pname">${escapeHtml(r.player_name)}</span><span class="st ${on ? 'on' : 'off'}">${on ? 'Online' : 'Offline'}</span></div></td>
+          <td class="name" data-idx="${idx}"><div class="nm"><span class="pname">${escapeHtml(r.player_name)}</span><span class="dv" title="${escapeHtml([r.device,r.os,r.browser].filter(Boolean).join(' · '))}">${devIcon(r.device)}</span><span class="st ${on ? 'on' : 'off'}">${on ? 'Online' : 'Offline'}</span></div></td>
           <td class="num">${r.wins}</td>
           <td class="num">${r.guesses}</td>
           <td class="date">${formatDateHtml(r.created_at)}</td>
@@ -317,6 +327,11 @@
       $('cardArc').style.strokeDashoffset = 263.9 * (1 - rate / 100);
       $('cardCreated').textContent = formatDate(player.created_at);
       $('cardLastLogin').textContent = (getLogin(player) ? formatDate(getLogin(player)) + ' · ' + ago(getLogin(player)) : '—');
+      const dv = [player.device, player.os, player.browser].filter(Boolean).join(' · ');
+      $('cardDevice').textContent = dv || '—';
+      $('cardLoc').textContent = [flag(player.country), player.timezone].filter(Boolean).join(' ') || '—';
+      $('cardIp').textContent = player.ip_masked || '—';
+      $('cardVisits').textContent = player.visits ?? '—';
       $('cardLastWin').textContent = formatDate(player.last_win_at);
       $('cardStamp').textContent = new Date().toISOString().slice(0, 10);
       const st = $('cardStatus');
