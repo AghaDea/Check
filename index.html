@@ -1,542 +1,178 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leaderboard</title>
-  <style>
-    :root{
-      --bg:#09090b; --surface:#111113; --surface2:#18181b; --line:#26262a;
-      --text:#f4f4f5; --muted:#8b8b94;
-      --gold:#f5b942; --gold-soft:rgba(245,185,66,.12);
-      --on:#22c55e; --off:#ef4444;
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:var(--bg);
-      background-image:radial-gradient(ellipse at 50% -10%,rgba(245,185,66,.10),transparent 55%);
-      background-attachment:fixed;
-      color:var(--text);min-height:100vh;padding:24px 12px;
-    }
-    .wrap{max-width:760px;margin:0 auto}
-    h1{font-size:1.7rem;font-weight:800;text-align:center;color:var(--gold);letter-spacing:.02em;margin-bottom:4px}
-    .sub{text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:20px}
-    .search-box{margin-bottom:14px}
-    .search-box input{
-      width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:12px;
-      background:var(--surface);color:var(--text);font-size:.95rem;outline:none;
-    }
-    .search-box input:focus{border-color:var(--gold)}
-    .card{
-      background:var(--surface);border:1px solid var(--line);border-radius:16px;
-      overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.45);
-    }
-    table{width:100%;border-collapse:collapse;table-layout:auto}
-    th{
-      background:var(--surface2);color:var(--gold);
-      font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
-      padding:13px 10px;text-align:left;border-bottom:1px solid var(--gold);white-space:nowrap;
-    }
-    td{padding:12px 10px;border-bottom:1px solid var(--line);font-size:.92rem;vertical-align:middle}
-    tr:last-child td{border-bottom:none}
-    tr:hover td{background:var(--surface2)}
-    th.rank,td.rank{width:44px;text-align:center}
-    td.rank{font-weight:800;color:var(--gold)}
-    th.num,td.num{text-align:center;width:70px}
-    td.num{font-weight:700;color:var(--text)}
-    td.name{min-width:0}
-    .nm{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px}
-    .pname{font-weight:700;color:var(--text);cursor:pointer;word-break:break-word}
-    .pname:hover{color:var(--gold)}
-    .dv{font-size:.8rem;opacity:.8}
-    .st{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:800;letter-spacing:.04em}
-    .st::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
-    .st.on{color:var(--on)}
-    .st.on::before{animation:pulse 1.4s infinite}
-    .st.off{color:var(--off)}
-    tr.is-on td{background:rgba(34,197,94,.06)}
-    tr.is-on td.rank{box-shadow:inset 3px 0 0 var(--on)}
-    td.date{color:var(--muted);font-size:.78rem;line-height:1.35;white-space:nowrap}
-    td.visit{color:var(--gold)}
-    td.date b{display:block;font-weight:600;color:#b4b4bc}
-    .msg{text-align:center;padding:48px 16px;color:var(--muted);font-size:.95rem}
-    .msg.error{color:var(--off)}
-    .footer{text-align:center;margin-top:14px;font-size:.75rem;color:#52525b}
-    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.7)}70%,100%{box-shadow:0 0 0 7px rgba(34,197,94,0)}}
-
-    @media(max-width:520px){
-      body{padding:18px 8px}
-      th,td{padding:11px 6px}
-      td{font-size:.86rem}
-      th.rank,td.rank{width:32px}
-      th.num,td.num{width:54px}
-      th{font-size:.62rem;letter-spacing:.04em}
-      td.date{font-size:.68rem}
-    }
-
-    /* ================= PLAYER CARD ================= */
-    .overlay{
-      position:fixed;inset:0;background:rgba(0,0,0,.9);
-      backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-      display:flex;flex-direction:column;align-items:center;
-      z-index:100;opacity:0;pointer-events:none;transition:opacity .25s;
-      padding:14px 10px 26px;overflow-y:auto;
-    }
-    .overlay.show{opacity:1;pointer-events:auto}
-    .overlay-bar{width:100%;max-width:400px;display:flex;justify-content:space-between;align-items:center;margin:auto auto 10px;color:#71717a;font-size:.72rem}
-    .close-btn{
-      width:34px;height:34px;border:1px solid #3f3f46;border-radius:50%;background:#18181b;color:#e4e4e7;
-      font-size:1.2rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;
-    }
-    .close-btn:hover{background:var(--gold);color:#111;border-color:var(--gold)}
-    .shot{
-      width:100%;max-width:400px;margin:0 auto;padding:16px;border-radius:34px;
-      background:radial-gradient(circle at 50% 0%,#2a2010,#050506 60%);
-      transform:scale(.93) translateY(22px);transition:transform .35s cubic-bezier(.34,1.56,.64,1);
-    }
-    .overlay.show .shot{transform:none}
-    .player-card{
-      position:relative;border-radius:28px;padding:2px;
-      background:linear-gradient(160deg,#ffd77a,#f5b942 30%,#7a5a1c 60%,#f5b942);
-      box-shadow:0 0 60px rgba(245,185,66,.25);
-    }
-    .pc{
-      position:relative;overflow:hidden;border-radius:26px;padding:20px 18px 16px;text-align:center;
-      background:
-        radial-gradient(circle at 50% 0%,rgba(245,185,66,.22),transparent 52%),
-        linear-gradient(180deg,#151517,#09090a);
-    }
-    .pc::before{
-      content:'';position:absolute;inset:0;opacity:.05;pointer-events:none;
-      background:repeating-linear-gradient(45deg,#fff 0 1px,transparent 1px 12px);
-    }
-    .pc>*{position:relative}
-    .corner{position:absolute !important;width:18px;height:18px;border-color:var(--gold);opacity:.7}
-    .corner.tl{top:10px;left:10px;border-top:2px solid;border-left:2px solid;border-top-left-radius:8px}
-    .corner.tr{top:10px;right:10px;border-top:2px solid;border-right:2px solid;border-top-right-radius:8px}
-    .corner.bl{bottom:10px;left:10px;border-bottom:2px solid;border-left:2px solid;border-bottom-left-radius:8px}
-    .corner.br{bottom:10px;right:10px;border-bottom:2px solid;border-right:2px solid;border-bottom-right-radius:8px}
-    .wm{
-      position:absolute !important;top:70px;left:50%;transform:translateX(-50%);
-      font-size:10rem;font-weight:900;line-height:1;color:var(--gold);opacity:.07;
-      letter-spacing:-.05em;pointer-events:none;white-space:nowrap;
-    }
-    .pc-top{display:flex;justify-content:space-between;align-items:center;margin:4px 8px 16px}
-    .pc-brand{font-size:.6rem;font-weight:800;letter-spacing:.26em;color:var(--gold)}
-    .pc-status{
-      display:inline-flex;align-items:center;gap:6px;font-size:.68rem;font-weight:800;
-      padding:4px 10px;border-radius:99px;border:1px solid currentColor;background:rgba(0,0,0,.45);
-    }
-    .pc-status::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
-    .pc-status.on{color:var(--on)} .pc-status.on::before{animation:pulse 1.4s infinite}
-    .pc-status.off{color:var(--off)}
-    .tier{font-size:.62rem;font-weight:800;letter-spacing:.34em;color:var(--gold);margin-bottom:12px}
-    .avatar-ring{
-      width:104px;height:104px;margin:0 auto 14px;border-radius:50%;padding:4px;
-      background:linear-gradient(145deg,#ffd77a,#f5b942 50%,#7a5a1c);
-      box-shadow:0 0 44px rgba(245,185,66,.45);
-    }
-    .avatar{
-      width:100%;height:100%;border-radius:50%;background:#0c0c0e;
-      display:flex;align-items:center;justify-content:center;
-      font-size:2.8rem;font-weight:900;color:var(--gold);
-    }
-    .card-name{font-size:1.7rem;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1.15;word-break:break-word}
-    .card-rank{
-      display:inline-block;margin-top:11px;background:var(--gold);color:#1a1200;
-      font-size:.74rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;
-      padding:6px 18px;border-radius:99px;box-shadow:0 6px 20px rgba(245,185,66,.4);
-    }
-    .stats{display:grid;grid-template-columns:1fr 104px 1fr;align-items:center;gap:6px;margin:20px 0 12px}
-    .stat .v{font-size:1.8rem;font-weight:900;color:#fff;line-height:1}
-    .stat .l{font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.16em;text-transform:uppercase;margin-top:6px}
-    .ring{position:relative;width:104px;height:104px}
-    .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
-    .ring .bg{stroke:#26262a} .ring .fg{stroke:var(--gold);stroke-linecap:round;transition:stroke-dashoffset .8s ease}
-    .ring .c{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-    .ring .c b{font-size:1.35rem;font-weight:900;color:var(--gold);line-height:1}
-    .ring .c span{font-size:.5rem;letter-spacing:.16em;color:var(--muted);margin-top:4px;font-weight:700}
-    .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-    .mini div{border:1px solid var(--line);border-radius:12px;background:rgba(245,185,66,.05);padding:9px 4px}
-    .mini b{display:block;font-size:1.05rem;font-weight:900;color:var(--gold)}
-    .mini span{display:block;font-size:.5rem;letter-spacing:.12em;color:var(--muted);font-weight:700;margin-top:4px}
-    .grp{font-size:.55rem;font-weight:800;letter-spacing:.3em;color:var(--gold);text-align:left;margin:12px 4px 6px;opacity:.85}
-    .info{border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025);overflow:hidden;text-align:left}
-    .info-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;font-size:.76rem;border-bottom:1px solid var(--line)}
-    .info-row:last-child{border-bottom:none}
-    .info-label{color:var(--muted);font-weight:600;white-space:nowrap}
-    .info-value{color:#fff;font-weight:700;text-align:right;word-break:break-word}
-    .card-footer{margin-top:14px;display:flex;justify-content:space-between;align-items:center;color:#71717a;padding:0 4px}
-    .card-footer .bc{color:#a1a1aa;line-height:0}
-    .card-footer .sn{text-align:right;font-size:.55rem;letter-spacing:.18em;font-weight:700;line-height:1.7;text-transform:uppercase}
-    .card-footer .sn b{color:var(--gold);display:block}
-    .actions{width:100%;max-width:400px;margin:14px auto 0;display:flex;gap:10px}
-    .btn{
-      flex:1;padding:14px;border:none;border-radius:14px;font-size:.95rem;font-weight:800;cursor:pointer;
-      background:var(--gold);color:#1a1200;box-shadow:0 8px 24px rgba(245,185,66,.3);
-    }
-    .btn:disabled{opacity:.6}
-    .toast{
-      position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
-      background:#18181b;color:#fff;border:1px solid var(--gold);padding:10px 18px;border-radius:99px;
-      font-size:.82rem;opacity:0;pointer-events:none;transition:.25s;z-index:200;white-space:nowrap;
-    }
-    .toast.show{opacity:1;transform:translateX(-50%)}
-    .capturing .shot{transform:none !important;transition:none !important}
-    .capturing *{animation:none !important}
-    @media(max-height:700px){.avatar-ring{width:84px;height:84px}.avatar{font-size:2.2rem}}
-  </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>QR Studio</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#080a10;color:#f5f7ff}
+.app{max-width:900px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.logo{font-size:25px;font-weight:900}.badge{font-size:12px;color:#9da7bc;background:#111622;border:1px solid #222a3b;padding:8px 11px;border-radius:99px}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.card{background:#0e121b;border:1px solid #20283a;border-radius:22px;padding:18px;box-shadow:0 15px 45px #0005}
+h2{font-size:18px;margin:0 0 15px}label{display:block;color:#aeb7ca;font-size:13px;margin:14px 0 7px}
+input,textarea,select{width:100%;border:1px solid #293248;background:#090c13;color:#fff;border-radius:13px;padding:13px;font:inherit;outline:none}
+textarea{min-height:130px;resize:vertical}input:focus,textarea:focus,select:focus{border-color:#667cff}
+.tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{border:1px solid #293248;background:#101522;color:#cbd3e4;padding:10px 13px;border-radius:12px;cursor:pointer}.tab.active{background:#5b6cff;color:#fff;border-color:#5b6cff}
+button{border:0;border-radius:13px;padding:13px 16px;background:#5b6cff;color:#fff;font-weight:800;cursor:pointer}.secondary{background:#171d2a}.danger{background:#7b2631}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}
+#drop{border:1px dashed #39445c;border-radius:15px;padding:25px;text-align:center;color:#9da7bc;cursor:pointer}
+#preview{min-height:310px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:17px;padding:20px}
+#qrcode img{display:block;margin:auto}.status{font-size:13px;color:#9da7bc;margin-top:12px;min-height:20px}.success{color:#69e6a6}.error{color:#ff7887}
+.result{word-break:break-all;background:#080b12;border-radius:12px;padding:11px;font-size:12px;color:#9faac0;margin-top:10px}
+.history{margin-top:16px}.item{display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #20283a;padding:12px 0}.item small{color:#8f99ad}.item a{color:#9ba7ff;text-decoration:none}
+.hidden{display:none!important}
+@media(max-width:720px){.grid{grid-template-columns:1fr}.app{padding:13px}.card{border-radius:17px}}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Leaderboard</h1>
-    <p class="sub">Wins · Guesses · Account Created</p>
+<div class="app">
+  <div class="top"><div class="logo">QR Studio</div><div class="badge">Supabase • QR</div></div>
 
-    <div class="search-box">
-      <input type="text" id="search" placeholder="Search player name..." autocomplete="off">
-    </div>
+  <div class="grid">
+    <section class="card">
+      <h2>ساخت QR جدید</h2>
+      <label>عنوان</label>
+      <input id="title" maxlength="100" placeholder="مثلاً کارت ویزیت من">
 
-    <div class="card">
-      <div id="status" class="msg">Loading...</div>
-      <table id="table" style="display:none">
-        <thead>
-          <tr>
-            <th class="rank">#</th>
-            <th>Player</th>
-            <th class="num">Wins</th>
-            <th class="num">Guesses</th>
-            <th>Created</th>
-            <th>Last Visit</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-    <p class="footer">Click a player name to view full card · Live · Online = edited in the last 3s</p>
-  </div>
-
-  <div class="overlay" id="overlay">
-    <div class="overlay-bar"><span>Tap outside or press Esc to close</span><button class="close-btn" id="closeBtn" aria-label="Close">×</button></div>
-    <div class="shot" id="shot">
-      <div class="player-card">
-        <div class="pc">
-          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-          <div class="wm" id="cardWm">#1</div>
-          <div class="pc-top">
-            <span class="pc-brand">PLAYER CARD</span>
-            <span class="pc-status off" id="cardStatus">Offline</span>
-          </div>
-          <div class="tier" id="cardTier">CHALLENGER</div>
-          <div class="avatar-ring"><div class="avatar" id="cardAvatar">A</div></div>
-          <div class="card-name" id="cardName">Player</div>
-          <div class="card-rank" id="cardRank">Rank #1</div>
-          <div class="stats">
-            <div class="stat"><div class="v" id="cardWins">0</div><div class="l">Wins</div></div>
-            <div class="ring">
-              <svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="42" fill="none" stroke-width="8"/><circle class="fg" id="cardArc" cx="50" cy="50" r="42" fill="none" stroke-width="8" stroke-dasharray="263.9" stroke-dashoffset="263.9"/></svg>
-              <div class="c"><b id="cardRate">0%</b><span>WIN RATE</span></div>
-            </div>
-            <div class="stat"><div class="v" id="cardGuesses">0</div><div class="l">Guesses</div></div>
-          </div>
-          <div class="mini">
-            <div><b id="cardAvg">—</b><span>GUESSES / WIN</span></div>
-            <div><b id="cardTop">—</b><span>TOP PLAYERS</span></div>
-            <div><b id="cardGap">—</b><span>WINS TO #1</span></div>
-          </div>
-          <div class="grp">DEVICE</div>
-          <div class="info">
-            <div class="info-row"><span class="info-label">Device</span><span class="info-value" id="cardDevice">—</span></div>
-            <div class="info-row"><span class="info-label">System</span><span class="info-value" id="cardSystem">—</span></div>
-            <div class="info-row"><span class="info-label">Device ID</span><span class="info-value" id="cardDevId">—</span></div>
-            <div class="info-row"><span class="info-label">Location</span><span class="info-value" id="cardLoc">—</span></div>
-            <div class="info-row"><span class="info-label">IP</span><span class="info-value" id="cardIp">—</span></div>
-          </div>
-          <div class="grp">ACTIVITY</div>
-          <div class="info">
-            <div class="info-row"><span class="info-label">Visits</span><span class="info-value" id="cardVisits">—</span></div>
-            <div class="info-row"><span class="info-label">Joined</span><span class="info-value" id="cardCreated">—</span></div>
-            <div class="info-row"><span class="info-label">Last Visit</span><span class="info-value" id="cardLastLogin">—</span></div>
-            <div class="info-row"><span class="info-label">Last Win</span><span class="info-value" id="cardLastWin">—</span></div>
-          </div>
-          <div class="card-footer">
-            <div class="bc" id="cardBarcode"></div>
-            <div class="sn"><b id="cardSerial">No. 000000</b><span id="cardStamp"></span></div>
-          </div>
-        </div>
+      <label>نوع محتوا</label>
+      <div class="tabs">
+        <button class="tab active" data-type="text">متن</button>
+        <button class="tab" data-type="url">لینک</button>
+        <button class="tab" data-type="image">عکس</button>
       </div>
-    </div>
-    <div class="actions"><button class="btn" id="saveBtn">📸 Save as Image</button></div>
+
+      <div id="textBox">
+        <label>متن</label>
+        <textarea id="text" placeholder="متن موردنظر را وارد کنید..."></textarea>
+      </div>
+
+      <div id="urlBox" class="hidden">
+        <label>لینک</label>
+        <input id="url" type="url" placeholder="https://example.com">
+      </div>
+
+      <div id="imageBox" class="hidden">
+        <label>عکس</label>
+        <div id="drop">برای انتخاب عکس لمس کنید<br><small>JPG / PNG / WEBP — حداکثر 5MB</small></div>
+        <input id="file" type="file" accept="image/*" class="hidden">
+        <div id="fileName" class="status"></div>
+      </div>
+
+      <label>اندازه QR</label>
+      <select id="size"><option value="220">220 × 220</option><option value="280" selected>280 × 280</option><option value="340">340 × 340</option></select>
+
+      <div class="row" style="margin-top:15px">
+        <button id="create">ساخت QR</button>
+        <button id="download" class="secondary">دانلود PNG</button>
+      </div>
+      <div id="status" class="status"></div>
+    </section>
+
+    <section class="card">
+      <h2>پیش‌نمایش</h2>
+      <div id="preview"><div id="qrcode"></div></div>
+      <div id="result" class="result">هنوز QR ساخته نشده است.</div>
+      <div class="row" style="margin-top:10px">
+        <button id="copy" class="secondary">کپی لینک</button>
+        <button id="open" class="secondary">باز کردن</button>
+      </div>
+    </section>
   </div>
-  <div class="toast" id="toast"></div>
 
-  <script>
-    const SUPABASE_URL = 'https://ihbsxjgzrhnssluqooqh.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_hHyHJI5JkxgLNrXAwZrGWQ_vbD3kdrj';
-    // name of the "last login" column in your table (auto-detects common names)
-    const LOGIN_FIELD = 'last_seen_at';
-    const LOGIN_FALLBACKS = ['last_seen_at','last_login','last_login_at','last_seen','last_active_at','last_active'];
-    const getLogin = p => p[LOGIN_FIELD] || LOGIN_FALLBACKS.map(k => p[k]).find(Boolean) || null;
+  <section class="card history">
+    <h2>QRهای اخیر</h2>
+    <div id="history">در حال دریافت...</div>
+  </section>
+</div>
 
-    let allRows = [];
-    let openName = null;
-    const ONLINE_MS = 3000;
-    const POLL_MS = 1500;
-    const seen = new Map();
-    let firstLoad = true;
-    let lastOnlineKey = '';
+<script>
+const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+const {createClient} = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const isOnline = r => {
-      const e = seen.get(r.player_name);
-      return !!(e && e.lastChange && Date.now() - e.lastChange <= ONLINE_MS);
-    };
+let type="text", selectedFile=null, currentUrl="", currentId="";
 
-    const p2 = n => String(n).padStart(2, '0');
-    function formatDate(iso) {
-      if (!iso) return '—';
-      const d = new Date(iso);
-      return `${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
-    }
-    function formatDateHtml(iso) {
-      if (!iso) return '—';
-      const d = new Date(iso);
-      return `<b>${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())}</b>${p2(d.getHours())}:${p2(d.getMinutes())}`;
-    }
-    function ago(iso) {
-      const sec = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
-      if (sec < 60) return 'just now';
-      if (sec < 3600) return Math.floor(sec / 60) + 'm ago';
-      if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
-      return Math.floor(sec / 86400) + 'd ago';
-    }
-    function flag(cc) {
-      if (!cc || !/^[A-Za-z]{2}$/.test(cc) || cc.toUpperCase() === 'XX') return '';
-      return String.fromCodePoint(...[...cc.toUpperCase()].map(c => 127397 + c.charCodeAt(0)));
-    }
-    const devIcon = d => d === 'Mobile' ? '📱' : d === 'Tablet' ? '📟' : d === 'Desktop' ? '💻' : '';
-    function escapeHtml(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
+const $=id=>document.getElementById(id);
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active"); type=b.dataset.type;
+  $("textBox").classList.toggle("hidden",type!=="text");
+  $("urlBox").classList.toggle("hidden",type!=="url");
+  $("imageBox").classList.toggle("hidden",type!=="image");
+});
+$("drop").onclick=()=>$("file").click();
+$("file").onchange=e=>{selectedFile=e.target.files[0]||null;$("fileName").textContent=selectedFile?selectedFile.name:"";};
+$("drop").ondragover=e=>e.preventDefault();
+$("drop").ondrop=e=>{e.preventDefault();selectedFile=e.dataTransfer.files[0]||null;$("fileName").textContent=selectedFile?selectedFile.name:"";};
 
-    function render(rows) {
-      const status = document.getElementById('status');
-      const table = document.getElementById('table');
-      const tbody = document.getElementById('tbody');
-
-      if (!rows.length) {
-        status.className = 'msg';
-        status.textContent = firstLoad ? 'Loading...' : 'No players found';
-        status.style.display = 'block';
-        table.style.display = 'none';
-        return;
-      }
-
-      const ordered = rows.map((r, i) => ({ r, i }));
-      ordered.sort((a, b) => {
-        const ea = isOnline(a.r) ? seen.get(a.r.player_name).lastChange : 0;
-        const eb = isOnline(b.r) ? seen.get(b.r.player_name).lastChange : 0;
-        return (eb - ea) || (a.i - b.i);
-      });
-
-      status.style.display = 'none';
-      table.style.display = 'table';
-      tbody.innerHTML = ordered.map(({ r }) => {
-        const idx = allRows.indexOf(r);
-        const on = isOnline(r);
-        return `
-        <tr class="${on ? 'is-on' : ''}">
-          <td class="rank">${idx + 1}</td>
-          <td class="name" data-idx="${idx}"><div class="nm"><span class="pname">${escapeHtml(r.player_name)}</span><span class="dv" title="${escapeHtml([r.device,r.os,r.browser].filter(Boolean).join(' · '))}">${devIcon(r.device)}</span><span class="st ${on ? 'on' : 'off'}">${on ? 'Online' : 'Offline'}</span></div></td>
-          <td class="num">${r.wins}</td>
-          <td class="num">${r.guesses}</td>
-          <td class="date">${formatDateHtml(r.created_at)}</td>
-          <td class="date visit">${getLogin(r) ? ago(getLogin(r)) : '—'}</td>
-        </tr>`;
-      }).join('');
-
-      tbody.querySelectorAll('.name').forEach(el => {
-        el.addEventListener('click', () => {
-          const idx = +el.dataset.idx;
-          openCard(allRows[idx], idx + 1);
-        });
-      });
+function msg(t,err=false){$("status").textContent=t;$("status").className="status "+(err?"error":"success");}
+function makeQR(value){
+  $("qrcode").innerHTML="";
+  new QRCode($("qrcode"),{text:value,width:+$("size").value,height:+$("size").value,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});
+}
+function getValue(){
+  if(type==="text") return $("text").value.trim();
+  if(type==="url"){
+    const v=$("url").value.trim();
+    if(!/^https?:\\/\\//i.test(v)) throw new Error("لینک باید با http:// یا https:// شروع شود.");
+    return v;
+  }
+  return "";
+}
+$("create").onclick=async()=>{
+  try{
+    msg("در حال ساخت...");
+    let content=getValue(), filePath=null;
+    if(type==="text"&&!content) throw new Error("متن را وارد کنید.");
+    if(type==="url"&&!content) throw new Error("لینک را وارد کنید.");
+    if(type==="image"){
+      if(!selectedFile) throw new Error("یک عکس انتخاب کنید.");
+      if(selectedFile.size>5*1024*1024) throw new Error("حجم عکس بیشتر از 5MB است.");
+      if(!selectedFile.type.startsWith("image/")) throw new Error("فایل باید عکس باشد.");
     }
 
-    function hashName(str) {
-      let h = 2166136261;
-      for (const ch of String(str)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
-      return h;
-    }
-    function barcodeSvg(seed) {
-      let x = seed || 1, pos = 0, bars = '';
-      for (let i = 0; i < 34; i++) {
-        x = (Math.imul(x, 1103515245) + 12345) & 0x7fffffff;
-        const w = 1 + (x % 3), gap = 1 + ((x >> 4) % 2);
-        bars += `<rect x="${pos}" y="0" width="${w}" height="26" fill="currentColor"/>`;
-        pos += w + gap;
-      }
-      return `<svg width="112" height="26" viewBox="0 0 ${pos} 26" preserveAspectRatio="none">${bars}</svg>`;
-    }
+    const {data:row,error:e1}=await db.from("qr_items").insert({
+      title:$("title").value.trim()||"QR جدید",type,content:type==="image"?null:content
+    }).select().single();
+    if(e1) throw e1;
 
-    function fillCard(player, rank) {
-      const $ = id => document.getElementById(id);
-      const wins = +player.wins || 0, guesses = +player.guesses || 0;
-      const total = allRows.length || 1;
-      const rate = guesses > 0 ? Math.min(100, Math.round(wins / guesses * 100)) : 0;
-      const on = isOnline(player);
-      const medal = rank === 1 ? '🥇 ' : rank === 2 ? '🥈 ' : rank === 3 ? '🥉 ' : '';
-      const tier = rank === 1 ? 'CHAMPION' : rank <= 3 ? 'ELITE' : rank <= 10 ? 'PRO' : 'CHALLENGER';
-      const leader = Math.max(0, ...allRows.map(r => +r.wins || 0));
-      const gap = leader - wins;
-      const login = getLogin(player);
-
-      $('cardAvatar').textContent = (player.player_name || '?').trim().charAt(0).toUpperCase() || '?';
-      $('cardName').textContent = player.player_name || 'Unknown';
-      $('cardRank').textContent = `${medal}Rank #${rank}`;
-      $('cardTier').textContent = '★ ' + tier + ' ★';
-      $('cardWm').textContent = '#' + rank;
-      $('cardWins').textContent = wins;
-      $('cardGuesses').textContent = guesses;
-      $('cardRate').textContent = rate + '%';
-      $('cardArc').style.strokeDashoffset = 263.9 * (1 - rate / 100);
-      $('cardAvg').textContent = wins > 0 ? (guesses / wins).toFixed(1) : '—';
-      $('cardTop').textContent = 'Top ' + Math.max(1, Math.ceil(rank / total * 100)) + '%';
-      $('cardGap').textContent = gap === 0 ? '👑' : '-' + gap;
-
-      $('cardDevice').textContent = player.device_model || player.device || '—';
-      $('cardSystem').textContent = [player.os, player.browser].filter(Boolean).join(' · ') || '—';
-      $('cardDevId').textContent = player.device_id || '—';
-      $('cardLoc').textContent = [flag(player.country), player.country && player.country !== 'XX' ? player.country : '', player.timezone].filter(Boolean).join(' ') || '—';
-      $('cardIp').textContent = player.ip_masked || '—';
-      $('cardVisits').textContent = player.visits ?? '—';
-      $('cardCreated').textContent = player.created_at ? formatDate(player.created_at) + ' · ' + ago(player.created_at) : '—';
-      $('cardLastLogin').textContent = login ? formatDate(login) + ' · ' + ago(login) : '—';
-      $('cardLastWin').textContent = player.last_win_at ? formatDate(player.last_win_at) + ' · ' + ago(player.last_win_at) : '—';
-
-      const hv = hashName(player.player_name);
-      $('cardBarcode').innerHTML = barcodeSvg(hv);
-      $('cardSerial').textContent = 'No. ' + String(hv % 1000000).padStart(6, '0');
-      $('cardStamp').textContent = new Date().toISOString().slice(0, 10);
-
-      const st = $('cardStatus');
-      st.className = 'pc-status ' + (on ? 'on' : 'off');
-      st.textContent = on ? 'Online' : 'Offline';
+    if(type==="image"){
+      filePath=row.id+"/"+Date.now()+"_"+selectedFile.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+      const {error:e2}=await db.storage.from("qr-files").upload(filePath,selectedFile,{upsert:false});
+      if(e2) throw e2;
+      const {data:pub}=db.storage.from("qr-files").getPublicUrl(filePath);
+      content=pub.publicUrl;
+      const {error:e3}=await db.from("qr_items").update({content,file_path:filePath}).eq("id",row.id);
+      if(e3) throw e3;
     }
 
-    function toast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg; t.classList.add('show');
-      clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2600);
-    }
+    const viewUrl=new URL("view.html",location.href); viewUrl.searchParams.set("id",row.id);
+    currentId=row.id; currentUrl=viewUrl.href;
+    makeQR(currentUrl); $("result").textContent=currentUrl;
+    msg("QR با موفقیت ساخته شد.");
+    loadHistory();
+  }catch(e){console.error(e);msg(e.message||"خطا در ساخت QR",true);}
+};
+$("download").onclick=()=>{
+  const img=$("qrcode img"); if(!img){msg("اول QR بسازید.",true);return;}
+  const a=document.createElement("a");a.href=img.src;a.download="qr-"+(currentId||"code")+".png";a.click();
+};
+$("copy").onclick=async()=>{if(!currentUrl)return msg("اول QR بسازید.",true);await navigator.clipboard.writeText(currentUrl);msg("لینک کپی شد.");};
+$("open").onclick=()=>{if(currentUrl)location.href=currentUrl;else msg("اول QR بسازید.",true);};
 
-    async function saveCard() {
-      const btn = document.getElementById('saveBtn');
-      const name = (document.getElementById('cardName').textContent || 'player').replace(/[^\w\u0600-\u06FF-]+/g, '_');
-      const rank = document.getElementById('cardWm').textContent.replace('#', '');
-      if (!window.html2canvas) { toast('Image tool not loaded – use a normal screenshot'); return; }
-      btn.disabled = true; btn.textContent = 'Saving…';
-      document.body.classList.add('capturing');
-      try {
-        await new Promise(r => setTimeout(r, 80));
-        const canvas = await html2canvas(document.getElementById('shot'), {
-          scale: 3, backgroundColor: '#050506', useCORS: true, logging: false
-        });
-        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
-        const file = new File([blob], `${name}-rank${rank}.png`, { type: 'image/png' });
-        const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-        if (isIOS && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: name });
-        } else {
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob); a.download = file.name;
-          document.body.appendChild(a); a.click(); a.remove();
-          setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-        }
-        toast('✅ Image saved');
-      } catch (e) {
-        if (e && e.name !== 'AbortError') { console.error(e); toast('Save failed – use a normal screenshot'); }
-      } finally {
-        document.body.classList.remove('capturing');
-        btn.disabled = false; btn.textContent = '📸 Save as Image';
-      }
-    }
-    document.getElementById('saveBtn').addEventListener('click', saveCard);
-
-    function openCard(player, rank) {
-      if (!player) return;
-      openName = player.player_name;
-      fillCard(player, rank);
-      document.getElementById('overlay').classList.add('show');
-    }
-    function refreshOpenCard() {
-      if (!openName) return;
-      const i = allRows.findIndex(r => r.player_name === openName);
-      if (i >= 0) fillCard(allRows[i], i + 1);
-    }
-    function closeCard() {
-      document.getElementById('overlay').classList.remove('show');
-      openName = null;
-    }
-
-    document.getElementById('closeBtn').addEventListener('click', closeCard);
-    document.getElementById('overlay').addEventListener('click', e => {
-      if (e.target.id === 'overlay') closeCard();
-    });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCard(); });
-
-    async function load() {
-      const status = document.getElementById('status');
-      try {
-        const url = `${SUPABASE_URL}/rest/v1/leaderboard?select=*&order=wins.desc&limit=150`;
-        const res = await fetch(url, {
-          cache: 'no-store',
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-        });
-        if (!res.ok) throw new Error(`${res.status} – ${await res.text()}`);
-        const data = await res.json();
-        allRows = (Array.isArray(data) ? data : []).map(r => ({
-          ...r,
-          wins: Number(r.wins) || 0,
-          guesses: Number(r.guesses) || 0   // always this row's own value
-        }));
-        if (location.search.includes('debug')) console.table(allRows.map(r => ({ name: r.player_name, wins: r.wins, guesses: r.guesses })));
-
-        const now = Date.now();
-        allRows.forEach(r => {
-          const sig = `${r.wins}|${r.guesses}|${r.last_win_at}`;
-          const e = seen.get(r.player_name);
-          if (!e) seen.set(r.player_name, { sig, lastChange: firstLoad ? 0 : now });
-          else if (e.sig !== sig) { e.sig = sig; e.lastChange = now; }
-        });
-        firstLoad = false;
-        filter();
-        refreshOpenCard();
-      } catch (err) {
-        if (firstLoad || !allRows.length) {
-          status.className = 'msg error';
-          status.textContent = 'Error: ' + err.message;
-          status.style.display = 'block';
-          document.getElementById('table').style.display = 'none';
-        }
-        console.error(err);
-      }
-    }
-
-    async function loop() { await load(); setTimeout(loop, POLL_MS); }
-
-    function filter() {
-      const q = document.getElementById('search').value.trim().toLowerCase();
-      render(q ? allRows.filter(r => (r.player_name || '').toLowerCase().includes(q)) : allRows);
-    }
-    document.getElementById('search').addEventListener('input', filter);
-
-    setInterval(() => {
-      const key = allRows.filter(isOnline).map(r => r.player_name).join('|');
-      if (key !== lastOnlineKey) { lastOnlineKey = key; filter(); refreshOpenCard(); }
-    }, 300);
-
-    loop();
-  </script>
+async function loadHistory(){
+  const {data,error}=await db.from("qr_items").select("id,title,type,created_at").order("created_at",{ascending:false}).limit(20);
+  if(error){$("history").textContent="خطا در دریافت لیست.";return;}
+  if(!data.length){$("history").textContent="هنوز چیزی ساخته نشده.";return;}
+  $("history").innerHTML=data.map(x=>{
+    const u="view.html?id="+encodeURIComponent(x.id);
+    return `<div class="item"><div><b>${escapeHtml(x.title)}</b><br><small>${x.type} • ${new Date(x.created_at).toLocaleString("fa-IR")}</small></div><a href="${u}">مشاهده</a></div>`;
+  }).join("");
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+loadHistory();
+</script>
 </body>
 </html>
