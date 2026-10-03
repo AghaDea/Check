@@ -4,393 +4,380 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Users Wiki</title>
-
+<script>
+(function(){var t;try{t=localStorage.getItem("uw-theme")}catch(e){}
+if(!t)t=matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";
+document.documentElement.dataset.theme=t})();
+</script>
 <style>
+:root{
+ --bg:#fff;--sf:#f6f7f9;--ink:#1c1e21;--mut:#667085;--ln:#e4e7ec;
+ --ac:#2a5db0;--acs:#eaf0fb;--warn:#b7791f;--bad:#b42318;--hi:#fff1b8;
+ --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+ --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+}
+html[data-theme=dark]{
+ --bg:#101216;--sf:#171a20;--ink:#e6e8eb;--mut:#98a2b3;--ln:#262b33;
+ --ac:#8ab4f8;--acs:#1a2536;--warn:#e0a84a;--bad:#f07167;--hi:#4a3f12;
+ color-scheme:dark;
+}
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px;border-radius:4px}
 
-body{
- margin:0;
- background:#fff;
- color:#202122;
- font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--ln);height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 max(20px,calc(50% - 540px))}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:20px}
+.brand i{width:26px;height:26px;border-radius:6px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-style:normal;font-size:15px}
+.brand small{font:12px var(--sans);color:var(--mut)}
+.icon{width:34px;height:34px;border:1px solid var(--ln);background:none;border-radius:8px;display:grid;place-items:center;color:var(--mut)}
+.icon:hover{color:var(--ink);background:var(--sf)}
 
-header{
- height:58px;
- border-bottom:1px solid #eaecf0;
- display:flex;
- align-items:center;
- padding:0 25px;
-}
+main{max-width:1080px;margin:auto;padding:34px 20px 60px}
+h1{font:400 32px/1.2 var(--serif);margin:0 0 6px;letter-spacing:-.01em}
+.lead{margin:0;color:var(--mut);max-width:60ch}
 
-.brand{
- font-family:Georgia,serif;
- font-size:20px;
-}
+.stats{display:flex;flex-wrap:wrap;gap:0;margin:24px 0 26px;border:1px solid var(--ln);border-radius:10px;background:var(--sf)}
+.stat{flex:1 1 140px;padding:12px 18px;border-right:1px solid var(--ln)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font:600 20px/1.3 var(--serif);font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--mut)}
 
-.brand small{
- font-family:Arial;
- font-size:11px;
- color:#72777d;
- margin-left:7px;
-}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.search{flex:1 1 280px;position:relative}
+.search svg{position:absolute;left:11px;top:50%;translate:0 -50%;color:var(--mut);pointer-events:none}
+.search input{width:100%;height:40px;padding:0 40px 0 36px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;outline:0}
+.search input:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--acs)}
+.search kbd{position:absolute;right:10px;top:50%;translate:0 -50%;font:11px var(--sans);color:var(--mut);border:1px solid var(--ln);border-radius:4px;padding:0 6px;pointer-events:none}
+.search input:focus+kbd,.search input:not(:placeholder-shown)+kbd{display:none}
+.chips{display:flex;border:1px solid var(--ln);border-radius:8px;overflow:hidden}
+.chips button{border:0;background:none;padding:0 13px;height:38px;font-size:13.5px;color:var(--mut)}
+.chips button+button{border-left:1px solid var(--ln)}
+.chips button:hover{background:var(--sf)}
+.chips button[aria-pressed=true]{background:var(--acs);color:var(--ac);font-weight:600}
+.chips em{font-style:normal;opacity:.7;margin-left:4px;font-variant-numeric:tabular-nums}
+.btn{height:40px;padding:0 14px;border:1px solid var(--ln);border-radius:8px;background:none;font-size:13.5px}
+.btn:hover{background:var(--sf)}
+#sort{display:none;height:40px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--ink);padding:0 8px;font:inherit}
 
-.container{
- max-width:1100px;
- margin:auto;
- padding:25px;
-}
+.info{display:flex;justify-content:space-between;margin:18px 0 8px;font-size:13px;color:var(--mut)}
 
-.top{
- display:flex;
- justify-content:space-between;
- align-items:center;
- border-bottom:1px solid #a2a9b1;
- padding-bottom:10px;
-}
+.grid,.main{display:grid;grid-template-columns:minmax(170px,1.1fr) 2fr 130px 120px;align-items:center;width:100%}
+.head{border-top:1px solid var(--ln);border-bottom:1px solid var(--ln);background:var(--sf);font-size:12.5px;font-weight:600;color:var(--mut)}
+.head button{border:0;background:none;text-align:left;padding:9px 12px;font-weight:600;color:inherit;display:flex;gap:5px;align-items:center}
+.head button:hover{color:var(--ink)}
+.head button::after{content:"";width:0;height:0;border:4px solid transparent;opacity:0}
+.head button[aria-sort=ascending]::after{border-bottom-color:currentColor;border-top:0;opacity:1}
+.head button[aria-sort=descending]::after{border-top-color:currentColor;border-bottom:0;opacity:1}
+.head button[aria-sort]{color:var(--ink)}
 
-h1{
- font-family:Georgia,serif;
- font-size:29px;
- font-weight:normal;
- margin:0;
-}
+.row{border-bottom:1px solid var(--ln)}
+.main{border:0;background:none;text-align:left;padding:0;min-height:60px}
+.main:hover,.row.open .main{background:var(--sf)}
+.c{padding:10px 12px;min-width:0}
+.player{display:flex;align-items:center;gap:11px;color:var(--ac);font-weight:500}
+.player b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mono{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:600 11px var(--sans);font-style:normal;color:hsl(var(--h) 45% 32%);background:hsl(var(--h) 60% 90%)}
+html[data-theme=dark] .mono{color:hsl(var(--h) 70% 80%);background:hsl(var(--h) 30% 22%)}
+.new{font:600 10.5px var(--sans);font-style:normal;color:var(--ac);background:var(--acs);padding:1px 7px;border-radius:99px}
+.reason{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cnt{display:flex;align-items:center;gap:9px;font-weight:600;font-variant-numeric:tabular-nums}
+.bar{width:44px;height:5px;border-radius:3px;background:var(--ln);overflow:hidden;flex:none}
+.bar s{display:block;height:100%;background:var(--mut)}
+.s2 .bar s{background:var(--warn)}.s3 .bar s{background:var(--bad)}
+.s2{color:var(--warn)}.s3{color:var(--bad)}
+.date{font-size:13px;color:var(--mut)}
+mark{background:var(--hi);color:inherit;border-radius:2px;padding:0 1px}
 
-.search{
- width:270px;
- height:34px;
- border:1px solid #a2a9b1;
- display:flex;
- align-items:center;
-}
+.detail{padding:6px 12px 18px 53px;animation:in .18s ease-out}
+.detail[hidden]{display:none}
+.detail dl{display:grid;grid-template-columns:110px 1fr;gap:6px 14px;margin:0 0 14px;font-size:14px}
+.detail dt{color:var(--mut)}
+.detail dd{margin:0;overflow-wrap:anywhere}
+.detail .btn{height:32px;font-size:13px;margin-right:6px}
+@keyframes in{from{opacity:0;translate:0 -4px}}
 
-.search span{
- color:#72777d;
- padding-left:9px;
-}
-
-.search input{
- border:0;
- outline:0;
- width:100%;
- height:100%;
- padding:0 9px;
- font-size:14px;
-}
-
-.info{
- display:flex;
- justify-content:space-between;
- margin:14px 0;
- color:#54595d;
- font-size:13px;
-}
-
-.table{
- border-top:1px solid #c8ccd1;
-}
-
-.item{
- display:grid;
- grid-template-columns:minmax(180px,1.2fr) 2fr 100px 130px;
- min-height:58px;
- align-items:center;
- border-bottom:1px solid #eaecf0;
-}
-
-.item:hover{
- background:#f8f9fa;
-}
-
-.head{
- background:#f8f9fa;
- font-size:12px;
- font-weight:600;
- color:#54595d;
-}
-
-.cell{
- padding:10px 12px;
- overflow:hidden;
- text-overflow:ellipsis;
-}
-
-.name{
- color:#0645ad;
- font-weight:500;
-}
-
-.reason{
- color:#202122;
-}
-
-.count{
- font-weight:600;
-}
-
-.date{
- color:#72777d;
- font-size:12px;
-}
-
-.empty{
- padding:35px 10px;
- text-align:center;
- color:#72777d;
- border-bottom:1px solid #eaecf0;
-}
+.empty{padding:48px 12px;text-align:center;color:var(--mut);border-bottom:1px solid var(--ln)}
+.empty b{display:block;color:var(--ink);margin-bottom:4px;font-weight:600}
+.empty .btn{margin-top:14px;color:var(--ink)}
+.sk{height:60px;border-bottom:1px solid var(--ln);display:flex;align-items:center;padding:0 12px;gap:12px}
+.sk i{height:12px;border-radius:6px;background:var(--ln);animation:p 1.2s ease-in-out infinite}
+.sk i:first-child{width:30px;height:30px;border-radius:50%}
+@keyframes p{50%{opacity:.45}}
+.more{display:block;margin:22px auto 0}
+#toast{position:fixed;left:50%;bottom:24px;translate:-50% 20px;opacity:0;background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:8px;font-size:13.5px;pointer-events:none;transition:.2s}
+#toast.on{opacity:1;translate:-50% 0}
 
 @media(max-width:700px){
-
- .container{
-  padding:18px 12px;
- }
-
- header{
-  padding:0 13px;
- }
-
- .top{
-  display:block;
- }
-
- h1{
-  margin-bottom:13px;
- }
-
- .search{
-  width:100%;
- }
-
- .info{
-  margin-top:15px;
- }
-
- .head{
-  display:none;
- }
-
- .item{
-  display:block;
-  padding:12px 0;
- }
-
- .cell{
-  padding:3px 8px;
- }
-
- .name{
-  font-size:16px;
- }
-
- .reason:before{
-  content:"Reason: ";
-  color:#72777d;
- }
-
- .count:before{
-  content:"Reports: ";
-  color:#72777d;
-  font-weight:normal;
- }
-
- .date:before{
-  content:"Added: ";
- }
+ main{padding:24px 14px 50px}
+ h1{font-size:27px}
+ .stat{flex-basis:50%;border-bottom:1px solid var(--ln)}
+ .stat:nth-child(2n){border-right:0}
+ .stat:nth-last-child(-n+2){border-bottom:0}
+ .head{display:none}
+ #sort{display:block}
+ .chips{order:3;width:100%}.chips button{flex:1}
+ .main{display:block;padding:12px 0}
+ .c{padding:3px 12px}
+ .reason:not(.player)::before,.cnt::before,.date::before{content:attr(data-l) ": ";color:var(--mut);font-weight:400}
+ .cnt .bar{display:none}
+ .cnt,.date{display:block}
+ .detail{padding:4px 12px 16px}
+ .detail dl{grid-template-columns:90px 1fr}
 }
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto}}
 </style>
 </head>
-
 <body>
 
 <header>
- <div class="brand">
-  Users Wiki
-  <small>player records</small>
- </div>
+ <div class="brand"><i>U</i>Users Wiki <small>player records</small></div>
+ <button class="icon" id="theme" aria-label="Toggle dark mode" title="Toggle dark mode">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+ </button>
 </header>
 
-<div class="container">
+<main>
+ <h1>Player records</h1>
+ <p class="lead">Players with reported cheating, the reason they were added and how often they have been reported.</p>
 
- <div class="top">
-  <h1>Player records</h1>
+ <div class="stats" id="stats" aria-label="Summary"></div>
 
+ <div class="tools">
   <div class="search">
-   <span>⌕</span>
-   <input
-    id="search"
-    type="search"
-    placeholder="Search..."
-    autocomplete="off">
+   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+   <input id="search" type="search" placeholder="Search players or reasons" autocomplete="off" aria-label="Search players or reasons">
+   <kbd>/</kbd>
   </div>
- </div>
-
- <div class="info">
-  <span id="result">Loading...</span>
-  <span id="total"></span>
- </div>
-
- <div class="table">
-
-  <div class="item head">
-   <div class="cell">Player</div>
-   <div class="cell">Reason</div>
-   <div class="cell">Reports</div>
-   <div class="cell">Added</div>
+  <div class="chips" id="chips" role="group" aria-label="Filter by reports">
+   <button data-f="all" aria-pressed="true">All<em></em></button>
+   <button data-f="rep" aria-pressed="false">3+ reports<em></em></button>
+   <button data-f="top" aria-pressed="false">10+ reports<em></em></button>
   </div>
-
-  <div id="users"></div>
-
+  <select id="sort" aria-label="Sort records">
+   <option value="name:asc">Name A–Z</option>
+   <option value="cnt:desc">Most reports</option>
+   <option value="date:desc">Newest</option>
+   <option value="date:asc">Oldest</option>
+  </select>
+  <button class="btn" id="export">Export CSV</button>
  </div>
 
-</div>
+ <div class="info"><span id="result" aria-live="polite">Loading records…</span></div>
+
+ <div class="grid head" id="head">
+  <button data-k="name" class="c">Player</button>
+  <button data-k="reason" class="c">Reason</button>
+  <button data-k="cnt" class="c">Reports</button>
+  <button data-k="date" class="c">Added</button>
+ </div>
+ <div id="users"></div>
+</main>
+
+<div id="toast" role="status"></div>
 
 <script>
+const SUPABASE_URL="https://ihbsxjgzrhnssluqooqh.supabase.co";
+const SUPABASE_KEY="sb_publishable_hHyHJI5JkxgLNrXAwZrGWQ_vbD3kdrj";
+const PAGE=50, CHUNK=1000, REPEAT=3, HEAVY=10, NEW_DAYS=7;
 
-const SUPABASE_URL =
-"https://ihbsxjgzrhnssluqooqh.supabase.co";
+const $=id=>document.getElementById(id);
+let users=[], open=new Set(), shown=PAGE;
+let S={q:"",k:"name",d:"asc",f:"all"};
 
-const SUPABASE_KEY =
-"sb_publishable_hHyHJI5JkxgLNrXAwZrGWQ_vbD3kdrj";
-
-let users=[];
-
-
+/* ---------- data ---------- */
 async function load(){
-
- const box=document.getElementById("users");
-
+ $("users").innerHTML=Array(6).fill('<div class="sk"><i></i><i style="width:22%"></i><i style="width:40%"></i></div>').join("");
+ $("result").textContent="Loading records…";
  try{
-
-  const r=await fetch(
-   SUPABASE_URL+
-   "/rest/v1/Users?select=id,name,reason,cheat_count,created_at&order=name.asc",
-   {
-    headers:{
-     "apikey":SUPABASE_KEY,
-     "Authorization":"Bearer "+SUPABASE_KEY
-    }
-   }
-  );
-
-  if(!r.ok){
-   box.innerHTML=
-   `<div class="empty">Unable to load records.</div>`;
-   return;
+  let all=[],off=0;
+  for(;;){
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/Users?select=id,name,reason,cheat_count,created_at&order=id.asc&limit=${CHUNK}&offset=${off}`,
+    {headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}});
+   if(!r.ok)throw 0;
+   const part=await r.json();
+   all=all.concat(part);
+   if(part.length<CHUNK)break;
+   off+=CHUNK;
   }
-
-  users=await r.json();
-
-  render();
-
+  users=all.map(u=>({id:u.id,name:String(u.name??"Unknown"),reason:String(u.reason??"").trim(),
+   cnt:Number(u.cheat_count)||0,date:u.created_at?new Date(u.created_at):null}));
+  stats();render();
  }catch(e){
-
-  box.innerHTML=
-  `<div class="empty">Unable to connect.</div>`;
-
+  $("result").textContent="";
+  $("users").innerHTML=`<div class="empty"><b>Couldn't load records</b>Check your connection and try again.<br><button class="btn" id="retry">Try again</button></div>`;
  }
-
 }
 
+/* ---------- helpers ---------- */
+function esc(x){return String(x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function hl(t,q){
+ t=String(t);if(!q)return esc(t);
+ const re=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");
+ let o="",i=0,m;
+ while((m=re.exec(t))){o+=esc(t.slice(i,m.index))+"<mark>"+esc(m[0])+"</mark>";i=m.index+m[0].length;if(!m[0].length)re.lastIndex++}
+ return o+esc(t.slice(i));
+}
+const full=d=>d?d.toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"}):"–";
+function rel(d){
+ if(!d)return "–";
+ const n=Math.floor((Date.now()-d)/864e5);
+ if(n<1)return "Today";if(n===1)return "Yesterday";if(n<30)return n+" days ago";
+ return d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
+}
+const isNew=u=>u.date&&Date.now()-u.date<NEW_DAYS*864e5;
+const tier=n=>n>=HEAVY?3:n>=REPEAT?2:1;
+const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
+const ini=s=>(s.replace(/[^\p{L}\p{N}]/gu,"").slice(0,2)||"?").toUpperCase();
+let tt;function toast(m){const t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),1800)}
+
+/* ---------- state in URL ---------- */
+function readHash(){
+ const p=new URLSearchParams(location.hash.slice(1));
+ S.q=p.get("q")||"";
+ if(["name","reason","cnt","date"].includes(p.get("s")))S.k=p.get("s");
+ if(["asc","desc"].includes(p.get("d")))S.d=p.get("d");
+ if(["all","rep","top"].includes(p.get("f")))S.f=p.get("f");
+ $("search").value=S.q;
+}
+function writeHash(){
+ const p=new URLSearchParams();
+ if(S.q)p.set("q",S.q);
+ if(S.k!=="name"||S.d!=="asc"){p.set("s",S.k);p.set("d",S.d)}
+ if(S.f!=="all")p.set("f",S.f);
+ history.replaceState(null,"",p.toString()?"#"+p:location.pathname+location.search);
+}
+
+/* ---------- summary ---------- */
+function stats(){
+ const total=users.reduce((a,u)=>a+u.cnt,0);
+ const recent=users.filter(u=>u.date&&Date.now()-u.date<30*864e5).length;
+ const last=users.reduce((a,u)=>u.date&&(!a||u.date>a)?u.date:a,null);
+ const cell=(b,s)=>`<div class="stat"><b>${b}</b><span>${s}</span></div>`;
+ $("stats").innerHTML=cell(users.length.toLocaleString(),"Records")+cell(total.toLocaleString(),"Total reports")+
+  cell(recent.toLocaleString(),"Added in the last 30 days")+cell(last?rel(last):"–","Latest addition");
+ const c=(f)=>users.filter(f).length;
+ const b=document.querySelectorAll("#chips em");
+ b[0].textContent=users.length;b[1].textContent=c(u=>u.cnt>=REPEAT);b[2].textContent=c(u=>u.cnt>=HEAVY);
+}
+
+/* ---------- render ---------- */
+function filtered(){
+ const q=S.q.toLowerCase();
+ const min=S.f==="top"?HEAVY:S.f==="rep"?REPEAT:0;
+ const l=users.filter(u=>u.cnt>=min&&(!q||u.name.toLowerCase().includes(q)||u.reason.toLowerCase().includes(q)));
+ const m=S.d==="asc"?1:-1;
+ l.sort((a,b)=>{
+  let r;
+  if(S.k==="cnt")r=a.cnt-b.cnt;
+  else if(S.k==="date")r=(a.date||0)-(b.date||0);
+  else r=a[S.k].localeCompare(b[S.k],undefined,{numeric:true,sensitivity:"base"});
+  return r*m||a.name.localeCompare(b.name);
+ });
+ return l;
+}
 
 function render(){
+ const list=filtered(), max=Math.max(1,...users.map(u=>u.cnt)), q=S.q;
+ document.querySelectorAll("#chips button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===S.f));
+ document.querySelectorAll("#head button").forEach(b=>{
+  if(b.dataset.k===S.k)b.setAttribute("aria-sort",S.d==="asc"?"ascending":"descending");else b.removeAttribute("aria-sort");
+ });
+ const key=S.k+":"+S.d;const sel=$("sort");if([...sel.options].some(o=>o.value===key))sel.value=key;
+ writeHash();
 
- const q=
- document.getElementById("search")
- .value
- .toLowerCase()
- .trim();
-
- const list=users.filter(u=>
-  String(u.name).toLowerCase().includes(q) ||
-  String(u.reason).toLowerCase().includes(q)
- );
-
- document.getElementById("total").textContent=
- `${users.length} records`;
-
- document.getElementById("result").textContent=
- q
- ? `${list.length} matching records`
- : "All players";
-
+ $("result").textContent=!list.length?"":
+  `Showing ${Math.min(shown,list.length)} of ${list.length.toLocaleString()} ${q||S.f!=="all"?"matching ":""}records`;
 
  if(!list.length){
-
-  document.getElementById("users").innerHTML=
-  `<div class="empty">No matching records.</div>`;
-
+  $("users").innerHTML=`<div class="empty"><b>No matching records</b>Try a different name or reason, or clear the filters.<br><button class="btn" id="clear">Clear filters</button></div>`;
   return;
  }
 
+ const rows=list.slice(0,shown).map(u=>{
+  const t=tier(u.cnt), o=open.has(u.id);
+  const same=users.filter(x=>x.reason&&x.reason===u.reason&&x.id!==u.id).length;
+  return `<div class="row${o?" open":""}" data-id="${esc(u.id)}">
+  <button class="main" aria-expanded="${o}">
+   <span class="c player"><i class="mono" style="--h:${hue(u.name)}">${esc(ini(u.name))}</i><b>${hl(u.name,q)}</b>${isNew(u)?'<em class="new">New</em>':""}</span>
+   <span class="c reason" data-l="Reason">${u.reason?hl(u.reason,q):"–"}</span>
+   <span class="c cnt s${t}" data-l="Reports"><span class="bar"><s style="width:${Math.max(8,u.cnt/max*100)}%"></s></span>+${u.cnt}</span>
+   <span class="c date" data-l="Added" title="${esc(full(u.date))}">${rel(u.date)}</span>
+  </button>
+  <div class="detail"${o?"":" hidden"}>
+   <dl>
+    <dt>Reason</dt><dd>${esc(u.reason||"Not specified")}</dd>
+    <dt>Reports</dt><dd>${u.cnt}${t===3?" (high)":t===2?" (repeated)":""}</dd>
+    <dt>Added</dt><dd>${esc(full(u.date))}</dd>
+    <dt>Record ID</dt><dd>${esc(u.id)}</dd>
+   </dl>
+   <button class="btn" data-copy>Copy name</button>${same?`<button class="btn" data-same>${same} other with this reason</button>`:""}
+  </div></div>`;
+ }).join("");
 
- document.getElementById("users").innerHTML=
- list.map(u=>`
-
-  <div class="item">
-
-   <div class="cell name">
-    ${esc(u.name)}
-   </div>
-
-   <div class="cell reason">
-    ${esc(u.reason)}
-   </div>
-
-   <div class="cell count">
-    +${u.cheat_count}
-   </div>
-
-   <div class="cell date">
-    ${date(u.created_at)}
-   </div>
-
-  </div>
-
- `).join("");
-
+ const left=list.length-shown;
+ $("users").innerHTML=rows+(left>0?`<button class="btn more" id="more">Show ${Math.min(PAGE,left)} more</button>`:"");
 }
 
+/* ---------- events ---------- */
+$("users").addEventListener("click",e=>{
+ const row=e.target.closest(".row"), t=e.target;
+ if(t.id==="retry")return load();
+ if(t.id==="clear"){S={...S,q:"",f:"all"};$("search").value="";shown=PAGE;return render()}
+ if(t.id==="more"){shown+=PAGE;return render()}
+ if(!row)return;
+ const u=users.find(x=>String(x.id)===row.dataset.id);
+ if(t.closest("[data-copy]")){
+  (navigator.clipboard?navigator.clipboard.writeText(u.name):Promise.reject()).then(()=>toast("Name copied"),()=>toast("Copy not available"));
+  return;
+ }
+ if(t.closest("[data-same]")){S.q=u.reason;$("search").value=u.reason;shown=PAGE;window.scrollTo({top:0});return render()}
+ if(t.closest(".main")){
+  open.has(u.id)?open.delete(u.id):open.add(u.id);
+  const o=open.has(u.id);
+  row.classList.toggle("open",o);
+  row.querySelector(".main").setAttribute("aria-expanded",o);
+  row.querySelector(".detail").hidden=!o;
+ }
+});
 
-function date(x){
+$("search").addEventListener("input",e=>{S.q=e.target.value.trim();shown=PAGE;render()});
+$("chips").addEventListener("click",e=>{const b=e.target.closest("button");if(b){S.f=b.dataset.f;shown=PAGE;render()}});
+$("head").addEventListener("click",e=>{
+ const b=e.target.closest("button");if(!b)return;
+ const k=b.dataset.k;
+ if(S.k===k)S.d=S.d==="asc"?"desc":"asc";
+ else{S.k=k;S.d=(k==="cnt"||k==="date")?"desc":"asc"}
+ render();
+});
+$("sort").addEventListener("change",e=>{[S.k,S.d]=e.target.value.split(":");render()});
 
- if(!x)return "-";
+$("export").addEventListener("click",()=>{
+ const list=filtered();if(!list.length)return toast("Nothing to export");
+ const cell=v=>{v=String(v);if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
+ const csv=["id,name,reason,reports,added",...list.map(u=>[u.id,u.name,u.reason,u.cnt,u.date?u.date.toISOString().slice(0,10):""].map(cell).join(","))].join("\r\n");
+ const a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));
+ a.download="player-records.csv";a.click();URL.revokeObjectURL(a.href);
+ toast(`Exported ${list.length} records`);
+});
 
- return new Date(x).toLocaleDateString(
-  undefined,
-  {
-   year:"numeric",
-   month:"short",
-   day:"numeric"
-  }
- );
+$("theme").addEventListener("click",()=>{
+ const t=document.documentElement.dataset.theme==="dark"?"light":"dark";
+ document.documentElement.dataset.theme=t;
+ try{localStorage.setItem("uw-theme",t)}catch(e){}
+});
 
-}
+document.addEventListener("keydown",e=>{
+ const typing=/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+ if(e.key==="/"&&!typing){e.preventDefault();$("search").focus()}
+ if(e.key==="Escape"&&document.activeElement===$("search")){$("search").value="";S.q="";shown=PAGE;render()}
+});
+addEventListener("hashchange",()=>{readHash();render()});
 
-
-function esc(x){
-
- return String(x).replace(
-  /[&<>"']/g,
-  c=>({
-   "&":"&amp;",
-   "<":"&lt;",
-   ">":"&gt;",
-   '"':"&quot;",
-   "'":"&#039;"
-  }[c])
- );
-
-}
-
-
-document
-.getElementById("search")
-.addEventListener("input",render);
-
+readHash();
 load();
-
 </script>
-
 </body>
 </html>
