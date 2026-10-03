@@ -1032,11 +1032,17 @@ function goHome(){
   try {
     var path = location.pathname || '/';
     if (/\/index\.html$/i.test(path)) path = path.replace(/\/index\.html$/i, '/');
-    else if (!path.endsWith('/')) path = path + '/';
-    path = path.replace(/\/login\/$/, '/');
+    else if (!path.endsWith('/')) {
+      if (/\.[a-zA-Z0-9]+$/.test(path.split('/').pop())) path = path.replace(/\/[^/]*$/, '/');
+      else path = path + '/';
+    }
+    // Collapse mistaken /app/login/ (or duplicated sections) back to site root
+    path = path.replace(/\/(app|login|update)\/(app|login|update)\/$/i, '/');
+    path = path.replace(/\/(app|login|update)\/$/i, '/');
     location.replace(path + 'app/');
   } catch (e) {
-    location.replace('../app/');
+    try { location.replace('../app/'); }
+    catch (e2) { location.replace('/app/'); }
   }
 }
 
