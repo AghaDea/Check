@@ -1,21 +1,12 @@
 <!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Drop — Upload</title><link rel="stylesheet" href="style.css">
-</head><body>
-<main class="shell">
-  <section class="card">
-    <div class="brand"><span class="logo">↑</span><div><b>Drop</b><small>Image & video uploader</small></div></div>
-    <label class="drop" id="drop">
-      <input id="file" type="file" accept="image/*,video/*" hidden>
-      <div class="cloud">↑</div><h1>Drop a file here</h1>
-      <p>Images & videos only · Maximum 16 MB</p>
-      <button type="button" class="btn" id="pick">Choose file</button>
-    </label>
-    <div id="preview" class="preview hidden"></div>
-    <div id="status" class="status"></div>
-  </section>
-</main>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drop</title><link rel="stylesheet" href="style.css"></head>
+<body><main class="shell"><section class="card">
+<div class="brand"><span class="logo">↑</span><div><b>Drop</b><small>Images & videos · 16 MB max</small></div></div>
+<label class="drop" id="drop"><input id="file" type="file" accept="image/*,video/*" hidden>
+<div class="cloud">↑</div><h1>Upload a file</h1><p>Only images and videos · maximum 16 MB</p>
+<button class="btn" id="pick" type="button">Choose file</button></label>
+<div id="result"></div><div id="status" class="status"></div>
+</section></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script><script src="app.js"></script>
-</body></html>
+<script src="config.js"></script><script src="app.js"></script></body></html>
