@@ -30,6 +30,8 @@ if ('serviceWorker' in navigator) {
       if (/\.[a-zA-Z0-9]+$/.test(path.split('/').pop())) path = path.replace(/\/[^/]*$/, '/');
       else path = path + '/';
     }
+    path = path.replace(/\/(app|login|update)\/(app|login|update)\/$/i, '/');
+    path = path.replace(/\/(app|login|update)\/$/i, '/');
     return path;
   }
   function go(p) {
